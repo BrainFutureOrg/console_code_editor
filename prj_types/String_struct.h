@@ -28,4 +28,8 @@ void free_string(string my_string);
 
 char string_equals(string string1, string string2);
 char string_charp_equals(string str, char *charp);
+
+string int_to_string(int num);
+string double_to_string(double num, int fractional_symbol_num);
+void string_zfill(string *my_string, int size, char sign, char symbol);
 #endif //CONSOLE_CODE_EDITOR__STRING_STRUCT_H

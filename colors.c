@@ -134,7 +134,7 @@ COLOR color_create_background_rgb(unsigned char r, unsigned char g, unsigned cha
 void color_to(COLOR_PARTS sum_of_parts)
 {
     COLOR color = create_color(sum_of_parts);
-    puts(color.line);
+    printf("%s", color.line);
     free_color(color);
 }
 
@@ -145,6 +145,6 @@ void color_to_default()
 void color_inverse()
 {
     COLOR my_color = string_create_from_fcharp(ESCAPE_COLOR "[7m");
-    puts(my_color.line);
+    printf("%s", my_color.line);
     free_color(my_color);
 }

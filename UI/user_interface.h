@@ -1,0 +1,10 @@
+//
+// Created by maximus on 06.07.23.
+//
+
+#ifndef CONSOLE_CODE_EDITOR_UI_USER_INTERFACE_H
+#define CONSOLE_CODE_EDITOR_UI_USER_INTERFACE_H
+
+void print_logo();
+
+#endif //CONSOLE_CODE_EDITOR_UI_USER_INTERFACE_H

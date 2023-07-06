@@ -11,14 +11,10 @@
 
 #define TEST_print_formated_error(ftext_error) va_list args;                  \
                                                va_start(args, ftext_error);   \
-                                               COLOR red_color = create_color(FOREGROUND_RED); \
-                                               COLOR default_color = create_color(DEFAULT);                             \
-                                               printf("%s", red_color.line);       \
+                                               color_to(FOREGROUND_RED);      \
                                                printf("ERROR text:");         \
                                                vprintf(ftext_error, args);    \
-                                               printf("\n%s", default_color.line); \
-                                               free_string(red_color);                               \
-                                               free_string(default_color);                               \
+                                               color_to(DEFAULT);             \
                                                va_end(args);
 #define unsuccess_test test_success = 0
 #define unsuccess_test_actions(test_name, ftext_error) color_from_parts_printf(FOREGROUND_RED, "Test \"%s\" failed\n", \

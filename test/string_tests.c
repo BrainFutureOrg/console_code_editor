@@ -103,7 +103,7 @@ void str_format_test_zfill()
 
 void apply_string_tests()
 {
-    printf(CYAN_B_COLOR "STRING TESTS START\n" DEFAULT_COLOR);
+    color_from_parts_printf(DEFAULT | BOLD | FOREGROUND_CYAN, "STRING TESTS START\n");
     str_equality_test();
     str_charp_equality_test();
     str_non_equality_test();
@@ -112,5 +112,5 @@ void apply_string_tests()
     str_charp_add_test();
     str_format_test();
     str_format_test_zfill();
-    printf(CYAN_B_COLOR "STRING TESTS END\n" DEFAULT_COLOR);
+    color_from_parts_printf(DEFAULT | BOLD | FOREGROUND_CYAN, "STRING TESTS END\n");
 }

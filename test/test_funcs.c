@@ -13,13 +13,17 @@
 
 #define TEST_print_formated_error(ftext_error) va_list args;                  \
                                                va_start(args, ftext_error);   \
-                                               printf("%s", RED_COLOR);       \
+                                               COLOR red_color = create_color(FOREGROUND_RED); \
+                                               COLOR default_color = create_color(DEFAULT);                             \
+                                               printf("%s", red_color.line);       \
                                                printf("ERROR text:");         \
                                                vprintf(ftext_error, args);    \
-                                               printf("\n%s", DEFAULT_COLOR); \
+                                               printf("\n%s", default_color.line); \
+                                               free_string(red_color);                               \
+                                               free_string(default_color);                               \
                                                va_end(args);
 #define unsuccess_test test_success = 0
-#define unsuccess_test_actions(test_name, ftext_error) printf(RED_B_COLOR "Test \"%s\" failed\n" DEFAULT_COLOR, \
+#define unsuccess_test_actions(test_name, ftext_error) color_from_parts_printf(FOREGROUND_RED, "Test \"%s\" failed\n", \
                                             test_name == NULL ? "Unnamed" : test_name); \
                                             unsuccess_test;                          \
                                                                                      \
@@ -35,7 +39,7 @@ void print_test_success()
 {
     if (test_success)
     {
-        printf(GREEN_B_COLOR "All tests successful\n" DEFAULT_COLOR);
+        color_from_parts_printf(DEFAULT | BOLD | FOREGROUND_GREEN, "All tests successful\n");
     }
 }
 void assertEqual(void *first,
@@ -50,7 +54,7 @@ void assertEqual(void *first,
     {
         if (test_name != NULL)
         {
-            printf(GREEN_COLOR "Test \"%s\" success\n" DEFAULT_COLOR, test_name);
+            color_from_parts_printf(DEFAULT | FOREGROUND_GREEN, "Test \"%s\" success\n", test_name);
         }
         return;
     }
@@ -70,7 +74,7 @@ void assertNotEqual(void *first,
     {
         if (test_name != NULL)
         {
-            printf(GREEN_COLOR "Test \"%s\" success\n" DEFAULT_COLOR, test_name);
+            color_from_parts_printf(DEFAULT | FOREGROUND_GREEN, "Test \"%s\" success\n", test_name);
         }
         return;
     }

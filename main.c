@@ -8,11 +8,11 @@
 #include "test/test_funcs.h"
 #include "IO/terminal_io.h"
 #include "colors.h"
-#define program_logo printf("\033[48;2;0;0;0m\033[38;2;200;150;50mC Code \033[48;2;200;150;50m\033[38;2;0;0;0mEditor\n" DEFAULT_COLOR)
+//#define program_logo printf("\033[48;2;0;0;0m\033[38;2;200;150;50mC Code \033[48;2;200;150;50m\033[38;2;0;0;0mEditor\n" DEFAULT_COLOR)
 
 int main(int argc, char **argv)
 {
-    program_logo;
+//    program_logo;
     apply_string_tests();//no delete
     print_test_success();// no delete
 

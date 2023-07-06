@@ -11,13 +11,13 @@ void print_error()
         case 0:
             break;
         case E2BIG:
-            printf(RED_B_COLOR "ERROR: E2BIG\n" DEFAULT_COLOR);
+            color_from_parts_printf(BOLD | FOREGROUND_RED, "ERROR: E2BIG\n");
             break;
         case EINVAL:
-            printf(RED_B_COLOR "ERROR: EINVAL\n" DEFAULT_COLOR);
+            color_from_parts_printf(BOLD | FOREGROUND_RED, "ERROR: EINVAL\n");
             break;
         default:
-            printf(RED_B_COLOR "ERROR\n" DEFAULT_COLOR);
+            color_from_parts_printf(BOLD | FOREGROUND_RED, "ERROR\n");
             break;
     }
 }

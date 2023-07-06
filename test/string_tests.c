@@ -81,8 +81,8 @@ void str_charp_add_test()
 
 void str_format_test()
 {
-    string s = string_create_from_fcharp("%s, %d, %.3f, %% %c", "Hello, world?", 2, 3.1415926535, 'p');
-    assert_equality_string_charp(s, "Hello, world?, 2, 3.141, % p", "formatted strings: all types");
+    string s = string_create_from_fcharp("%s, %d, %.3f, %% %c", "Hello, world?", 20, 3.1415926535, 'p');
+    assert_equality_string_charp(s, "Hello, world?, 20, 3.141, % p", "formatted strings: all types");
     free_string(s);
 }
 

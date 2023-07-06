@@ -4,6 +4,17 @@
 #include <stdio.h>
 #include "String_struct.h"
 
+void reverse_charp(char *line)
+{
+    char *end = line + strlen(line) - 1;
+    while (line < end)
+    {
+        char dop = *line;
+        *line++ = *end;
+        *end-- = dop;
+    }
+}
+
 string int_to_string(int num)
 {
     string result = string_create_new(5);
@@ -17,6 +28,7 @@ string int_to_string(int num)
         string_add_char(&result, (char)('0' + (num % 10)));
     }
     while ((num /= 10) != 0);
+    reverse_charp(*result.line == '-' ? result.line + 1 : result.line);
     return result;
 }
 string double_to_string(double num, int fractional_symbol_num)

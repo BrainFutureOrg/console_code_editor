@@ -1,5 +1,5 @@
 compile:
-	gcc main.c DAO.c prj_types/String_struct.c prj_types/String_struct_formatting.c test/string_tests.c test/test_funcs.c colors.c prj_error.c -lm -Wall -o main
+	gcc main.c IO/DAO.c prj_types/String_struct.c test/string_tests.c test/test_funcs.c colors.c prj_error.c prj_types/String_struct_formatting.c IO/terminal_io.c -lm -Wall -o main
 
 compile_run:
 	make compile

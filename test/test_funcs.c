@@ -8,8 +8,6 @@
 #include <errno.h>
 #include "../colors.h"
 #include "../prj_error.h"
-//#define TEST_SUCCESS 0
-
 
 #define TEST_print_formated_error(ftext_error) va_list args;                  \
                                                va_start(args, ftext_error);   \

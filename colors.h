@@ -8,8 +8,8 @@
 #include "prj_types/String_struct.h"
 #include "bins.h"
 
-
 typedef string COLOR;
+#define free_color(c) free_string(c)
 typedef int COLOR_PARTS;
 
 #define DEFAULT               B(00000000000000000001)
@@ -34,8 +34,15 @@ typedef int COLOR_PARTS;
 #define BACKGROUND_WHITE      B(10000000000000000000)
 
 COLOR create_color(COLOR_PARTS sum_of_parts);
-void color_printf(COLOR color, char* format, ...);
-void color_from_parts_printf(COLOR_PARTS sum_of_parts, char* format, ...);
 
+COLOR color_create_foreground_rgb(unsigned char r, unsigned char g, unsigned char b);
+COLOR color_create_background_rgb(unsigned char r, unsigned char g, unsigned char b);
+
+void color_to(COLOR_PARTS sum_of_parts);
+void color_to_default();
+void color_inverse();
+
+void color_printf(COLOR color, char *format, ...);
+void color_from_parts_printf(COLOR_PARTS sum_of_parts, char *format, ...);
 
 #endif //CONSOLE_CODE_EDITOR__COLORS_H

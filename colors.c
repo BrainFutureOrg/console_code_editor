@@ -96,31 +96,55 @@ COLOR create_color(COLOR_PARTS sum_of_parts)
 
 void color_printf(COLOR color, char *format, ...)
 {
-    printf("%s", color.line);
+    puts(color.line);
 
     va_list args;
     va_start(args, format);
     vprintf(format, args);
     va_end(args);
 
-    COLOR default_color = create_color(DEFAULT);
-    printf("%s", default_color.line);
-    free_string(default_color);
+    color_to_default();
 }
 
 void color_from_parts_printf(COLOR_PARTS sum_of_parts, char *format, ...)
 {
-    COLOR color = create_color(sum_of_parts);
-
-    printf("%s", color.line);
+    color_to(sum_of_parts);
 
     va_list args;
     va_start(args, format);
     vprintf(format, args);
     va_end(args);
 
-    COLOR default_color = create_color(DEFAULT);
-    printf("%s", default_color.line);
-    free_string(default_color);
-    free_string(color);
+    color_to_default();
+}
+
+COLOR color_create_foreground_rgb(unsigned char r, unsigned char g, unsigned char b)
+{
+    // 38 - Set foreground color; Next arguments are 2;<r>;<g>;<b>, see below
+    COLOR my_color = string_create_from_fcharp(ESCAPE_COLOR "[38;2;%d;%d;%dm", r, g, b);
+    return my_color;
+}
+COLOR color_create_background_rgb(unsigned char r, unsigned char g, unsigned char b)
+{
+    // 48 - Set background color; Next arguments are 2;<r>;<g>;<b>, see below
+    COLOR my_color = string_create_from_fcharp(ESCAPE_COLOR "[48;2;%d;%d;%dm", r, g, b);
+    return my_color;
+}
+
+void color_to(COLOR_PARTS sum_of_parts)
+{
+    COLOR color = create_color(sum_of_parts);
+    puts(color.line);
+    free_color(color);
+}
+
+void color_to_default()
+{
+    color_to(DEFAULT);
+}
+void color_inverse()
+{
+    COLOR my_color = string_create_from_fcharp(ESCAPE_COLOR "[7m");
+    puts(my_color.line);
+    free_color(my_color);
 }

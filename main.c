@@ -5,6 +5,7 @@
 #include "IO/terminal_io.h"
 #include "UI/user_interface.h"
 #include "colors.h"
+#include "IO/DAO.h"
 //#define program_logo printf("\033[48;2;0;0;0m\033[38;2;200;150;50mC Code \033[48;2;200;150;50m\033[38;2;0;0;0mEditor\n" DEFAULT_COLOR)
 
 int main(int argc, char **argv)
@@ -13,10 +14,10 @@ int main(int argc, char **argv)
     apply_string_tests();//no delete
     print_test_success();// no delete
 
-    //system("/bin/stty cooked");
-//    string str = string_create_from_fcharp("%s, %d, %.3f, %%",  "Hello, world?", 2, 3.1415926535);
-//    printf("%s\n",str.line);
-//    free_string(str);
+//    string file_text = read_file("example.txt");
+//    save_file(file_text, "smth.txt");
+//    printf("%s", file_text.line);
+//    free_string(file_text);
 
     read_keys();//no delete
     if (errno)

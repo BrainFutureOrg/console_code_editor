@@ -39,6 +39,8 @@ COLOR color_create_foreground_rgb(unsigned char r, unsigned char g, unsigned cha
 COLOR color_create_background_rgb(unsigned char r, unsigned char g, unsigned char b);
 
 void color_to(COLOR_PARTS sum_of_parts);
+void color_to_rgb_foreground(unsigned char r, unsigned char g, unsigned char b);
+void color_to_rgb_background(unsigned char r, unsigned char g, unsigned char b);
 void color_to_default();
 void color_inverse();
 

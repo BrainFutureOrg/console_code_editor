@@ -131,11 +131,25 @@ COLOR color_create_background_rgb(unsigned char r, unsigned char g, unsigned cha
     return my_color;
 }
 
+#define print_free_color(color) printf("%s", color.line); \
+                                free_color(color)
+
 void color_to(COLOR_PARTS sum_of_parts)
 {
     COLOR color = create_color(sum_of_parts);
-    printf("%s", color.line);
-    free_color(color);
+    print_free_color(color);
+}
+
+void color_to_rgb_foreground(unsigned char r, unsigned char g, unsigned char b)
+{
+    COLOR color = color_create_foreground_rgb(r, g, b);
+    print_free_color(color);
+}
+
+void color_to_rgb_background(unsigned char r, unsigned char g, unsigned char b)
+{
+    COLOR color = color_create_foreground_rgb(r, g, b);
+    print_free_color(color);
 }
 
 void color_to_default()
@@ -144,7 +158,6 @@ void color_to_default()
 }
 void color_inverse()
 {
-    COLOR my_color = string_create_from_fcharp(ESCAPE_COLOR "[7m");
-    printf("%s", my_color.line);
-    free_color(my_color);
+    COLOR color = string_create_from_fcharp(ESCAPE_COLOR "[7m");
+    print_free_color(color);
 }

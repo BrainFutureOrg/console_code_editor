@@ -131,7 +131,7 @@ void format_format_symbol_detect(string *formatted, char **line_pointer, va_list
 
 string string_create_from_fcharp(char *fcharp, ...)
 {
-    string formatted = string_create_new(strlen(fcharp));
+    string formatted = string_create_new(strlen(fcharp) + 1);
 
     va_list va;
     va_start(va, fcharp);

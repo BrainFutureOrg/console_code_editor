@@ -14,6 +14,7 @@
                                                color_to(FOREGROUND_RED);      \
                                                printf("ERROR text:");         \
                                                vprintf(ftext_error, args);    \
+                                               putchar('\n');                 \
                                                color_to(DEFAULT);             \
                                                va_end(args);
 #define unsuccess_test test_success = 0

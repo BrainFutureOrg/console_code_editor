@@ -105,12 +105,14 @@ string_fast string_fast_create_from_string(string initial)
 
 void string_fast_add_char(string_fast *my_string, char symbol)
 {
-    while (my_string->last_element + 2 >= my_string->string_part.len)
+    char is_empty = *my_string->string_part.line == '\0';
+    while (my_string->last_element + 2 - is_empty >= my_string->string_part.len)
     {
         string_increase_len(&my_string->string_part, my_string->string_part.len);
     }
-    my_string->string_part.line[++my_string->last_element] = symbol;
-    my_string->string_part.line[my_string->last_element + 1] = '\0';
+    my_string->string_part.line[++my_string->last_element - is_empty] = symbol;
+    my_string->string_part.line[my_string->last_element + 1 - is_empty] = '\0';
+    my_string->last_element -= is_empty;
 }
 void string_fast_add_string(string_fast *my_string1, string my_string2)
 {

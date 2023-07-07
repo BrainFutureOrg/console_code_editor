@@ -148,7 +148,7 @@ void color_to_rgb_foreground(unsigned char r, unsigned char g, unsigned char b)
 
 void color_to_rgb_background(unsigned char r, unsigned char g, unsigned char b)
 {
-    COLOR color = color_create_foreground_rgb(r, g, b);
+    COLOR color = color_create_background_rgb(r, g, b);
     print_free_color(color);
 }
 

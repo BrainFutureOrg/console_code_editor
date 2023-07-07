@@ -63,6 +63,31 @@ void str_char_add_test()
     assert_equality_string_charp(s, "abcde", "adding character to string");
     free_string(s);
 }
+void str_fast_str_add_test()
+{
+    string_fast s = string_fast_create_from_string(string_create_from_fcharp("abcd"));
+    string s_e = string_create_from_fcharp("e");
+    string_fast_add_string(&s, s_e);
+    assert_equality_string_charp(s.string_part, "abcde", "adding string to string_fast");
+    free_string_fast(s);
+    free_string(s_e);
+}
+void str_fast_charp_add_test()
+{
+    string_fast s = string_fast_create_from_string(string_create_from_fcharp("abc"));
+    string_fast_add_charp(&s, "de");
+    assert_equality_string_charp(s.string_part, "abcde", "adding character array to string_fast");
+    free_string_fast(s);
+}
+
+void str_fast_char_add_test()
+{
+    string_fast s = string_fast_create_from_string(string_create_from_fcharp("abcd"));
+
+    string_fast_add_char(&s, 'e');
+    assert_equality_string_charp(s.string_part, "abcde", "adding character to string_fast");
+    free_string_fast(s);
+}
 void str_str_add_test()
 {
     string s = string_create_from_fcharp("abcd"), s_e = string_create_from_fcharp("e");
@@ -110,6 +135,11 @@ void apply_string_tests()
     str_char_add_test();
     str_str_add_test();
     str_charp_add_test();
+
+    str_fast_char_add_test();
+    str_fast_str_add_test();
+    str_fast_charp_add_test();
+
     str_format_test();
     str_format_test_zfill();
     color_from_parts_printf(DEFAULT | BOLD | FOREGROUND_CYAN, "STRING TESTS END\n");

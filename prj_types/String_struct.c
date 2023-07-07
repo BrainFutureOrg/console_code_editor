@@ -89,3 +89,48 @@ char string_charp_equals(string str, char *charp)
     }
     return 0;
 }
+
+string_fast string_fast_create_new(uint len)
+{
+    string new = string_create_new(len);
+    return (string_fast){new, 0};
+}
+
+string_fast string_fast_create_from_string(string initial)
+{
+    string_fast result = {initial, 0};
+    result.last_element = strlen(initial.line) - 1;
+    return result;
+}
+
+void string_fast_add_char(string_fast *my_string, char symbol)
+{
+    while (my_string->last_element + 2 >= my_string->string_part.len)
+    {
+        string_increase_len(&my_string->string_part, my_string->string_part.len);
+    }
+    my_string->string_part.line[++my_string->last_element] = symbol;
+    my_string->string_part.line[my_string->last_element + 1] = '\0';
+}
+void string_fast_add_string(string_fast *my_string1, string my_string2)
+{
+    string_fast_add_charp(my_string1, my_string2.line);
+}
+
+void string_fast_add_charp(string_fast *my_string, char *charp)
+{
+    get_end_pointer_with_create(str2, charp);
+    uint len2 = str2 - charp;
+    uint full_len = my_string->last_element + len2 + 2;
+    if (full_len > my_string->string_part.len)
+    {
+        string_increase_len(&my_string->string_part, full_len - my_string->string_part.len);
+    }
+    char *str1 = my_string->string_part.line + my_string->last_element + 1;
+    while ('\0' != (*str1++ = *charp++));
+}
+
+void free_string_fast(string_fast my_string)
+{
+    free_string(my_string.string_part);
+}

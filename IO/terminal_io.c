@@ -30,7 +30,7 @@ char read_key()
 
         }
     }
-    else if(c>27)
+    else if (c > 27)
     {
         printf("%c", c);
     }
@@ -43,40 +43,27 @@ void read_keys()
     struct termios old_settings, new_settings;
     tcgetattr(STDIN_FILENO, &old_settings);
     new_settings = old_settings;
-    new_settings.c_lflag &= ~(ICANON | ECHO|ISIG);
+    new_settings.c_lflag &= ~(ICANON | ECHO | ISIG);
     tcsetattr(STDIN_FILENO, TCSANOW, &new_settings);
     char c;
-    while ((c=read_key()) != CTRL_E)if(c<27)process_ctrl_char(c);
+    while ((c = read_key()) != CTRL_('E'))
+    {
+        if (c < 27)
+        {
+            process_ctrl_char(c);
+        }
+    }
     tcsetattr(STDIN_FILENO, TCSANOW, &old_settings);
     printf("\nterminal input ended\n");
 }
-void process_ctrl_char(char c){
-    switch (c) {
-        case CTRL_C:
-            printf("[CTRL+C]");
-            break;
-        case CTRL_V:
-            printf("[CTRL+V]");
-            break;
-        case CTRL_O:
-            printf("[CTRL+O]");
-            break;
-        case CTRL_E:
-            printf("[CTRL+E]");
-            break;
-        case CTRL_G:
-            printf("[CTRL+G]");
-            break;
-        case CTRL_H:
-            printf("[CTRL+H]");
-            break;
-        case CTRL_X:
-            printf("[CTRL+X]");
-            break;
-        case CTRL_Z:
-            printf("[CTRL+Z]");
-            break;
-        default:
-            printf("[CTRL+WHAT]");
+void process_ctrl_char(char c)
+{
+    if (IS_CTRL(c))
+    {
+        printf("[CTRL+%c]", TO_LETTER(c));
+    }
+    else
+    {
+        printf("What a hell? %d, %c, %c", c, c, TO_LETTER(c));
     }
 }

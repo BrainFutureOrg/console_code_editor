@@ -92,6 +92,27 @@ void read_keys();
 /* erase the entire line */
 #define terminal_erase_entire_line                         printf(ESC"[2K")
 
+//--------------------------+
+//   Common Private Modes   |
+//--------------------------+
+
+/* make cursor invisible */
+#define terminal_invisible_cursor                          printf(ESC"[?25l")
+
+/* make cursor visible */
+#define terminal_visible_cursor                            printf(ESC"[?25h")
+
+/* restore screen */
+#define terminal_restore_screen                            printf(ESC"[?47l")
+
+/* save screen */
+#define terminal_save_screen                               printf(ESC"[?47h")
+
+/* enables the alternative buffer */
+#define terminal_enable_alternative_buffer                 printf(ESC"[?1049h")
+
+/* disables the alternative buffer */
+#define terminal_disable_alternative_buffer                printf(ESC"[?1049l")
 
 /*  */
 

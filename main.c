@@ -4,6 +4,8 @@
 #include "test/test_funcs.h"
 #include "UI/user_interface.h"
 #include "IO/segments.h"
+#include "IO/terminal_io.h"
+#include "test/test_functionality_of_new_functions.h"
 
 void tests();
 
@@ -12,6 +14,7 @@ int main(int argc, char **argv)
     print_logo();
     tests();
 
+    test_cursor_functions();
 //    test_console_games_functions(2);
 //    test_urectangle_region_functionality();
 //    test_interesting_picture();

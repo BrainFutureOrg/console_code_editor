@@ -95,3 +95,23 @@ void test_interesting_picture()
     }
     color_to(DEFAULT);
 }
+
+void test_cursor_functions()
+{
+    string file_text = read_file("example.txt");
+    cursor start_pos = cursor_get_cursor_position();
+    printf("%s", file_text.line);
+
+    cursor_printf_at_position(start_pos, "some_text");
+    sleep(2);
+    printf("text in end\n");
+    sleep(2);
+    cursor_printf_at_position(start_pos, "another_text");
+    sleep(2);
+    printf("one more text in end\n");
+    sleep(2);
+
+    free_cursor(start_pos);
+    free_string(file_text);
+}
+

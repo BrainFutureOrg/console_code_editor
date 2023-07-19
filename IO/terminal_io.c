@@ -5,6 +5,8 @@
 #include "terminal_io.h"
 #include <unistd.h>
 #include <termios.h>
+#include <malloc.h>
+#include <stdarg.h>
 char read_key()
 {
     char c;
@@ -66,4 +68,49 @@ void process_ctrl_char(char c)
     {
         printf("What a hell? %d, %c, %c", c, c, TO_LETTER(c));
     }
+}
+
+cursor cursor_get_cursor_position()
+{
+    cursor result;
+    result.position = malloc(2);
+
+    struct termios old_settings, new_settings;
+    tcgetattr(STDIN_FILENO, &old_settings);
+    new_settings = old_settings;
+    new_settings.c_lflag &= ~(ICANON | ECHO | ISIG);
+    tcsetattr(STDIN_FILENO, TCSANOW, &new_settings);
+
+//    terminal_get_cursor_position;
+//    read(0, result.position, 2);
+    for (int i = 0; i < 2; i++)
+    {
+        result.position[i] = getc(STDIN_FILENO);
+    }
+    tcsetattr(STDIN_FILENO, TCSANOW, &old_settings);
+    return result;
+}
+
+void cursor_printf_at_position(cursor my_cursor, char *format, ...)
+{
+    cursor start_pos = cursor_get_cursor_position();
+    cursor_go_to_position(my_cursor);
+
+    va_list args;
+    va_start(args, format);
+    vprintf(format, args);
+    va_end(args);
+
+    cursor_go_to_position(start_pos);
+    free_cursor(start_pos);
+}
+
+void cursor_print_position(cursor my_cursor)
+{
+    printf("position is %s\n", my_cursor.position);
+}
+
+void free_cursor(cursor my_cursor)
+{
+    free(my_cursor.position);
 }

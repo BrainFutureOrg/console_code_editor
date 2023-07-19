@@ -5,6 +5,10 @@
 #ifndef CONSOLE_CODE_EDITOR_TERMINAL_IO_H
 #define CONSOLE_CODE_EDITOR_TERMINAL_IO_H
 
+typedef struct
+{
+    char *position;
+} cursor;
 // CTRL controls
 #define preA ('A' - 1)
 #define IS_CTRL(l)   !(l > 'Z' - preA || l < 1)
@@ -51,6 +55,16 @@ void read_keys();
 
 /* request cursor position (reports as ESC[#;#R) */
 #define terminal_get_cursor_position                       printf(ESC"[6n")
+
+cursor cursor_get_cursor_position();
+
+void cursor_print_position(cursor my_cursor);
+
+#define cursor_go_to_position(my_cursor)                   printf(ESC"[%sH",my_cursor.position)
+
+void cursor_printf_at_position(cursor my_cursor, char *format, ...);
+
+void free_cursor(cursor my_cursor);
 
 /* moves cursor one line up, scrolling if needed */
 #define terminal_go_one_up_with_scroll                     printf(ESC" M")

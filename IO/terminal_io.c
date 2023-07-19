@@ -7,6 +7,9 @@
 #include <termios.h>
 #include <malloc.h>
 #include <stdarg.h>
+process_arrow_func_list* general_arrow_process_funcs=NULL;
+process_char_func_list* general_char_process_funcs=NULL;
+process_ctrl_func_list* general_ctrl_process_funcs=NULL;
 char read_key()
 {
     char c;

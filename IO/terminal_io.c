@@ -38,6 +38,27 @@ char read_key()
     }
     return c;
 }
+void read_process_key(process_arrow_func_list* process_arrow_funcs, process_char_func_list* process_char_funcs, process_ctrl_func_list* process_ctrl_funcs){
+    char c;
+    if((c=getchar())>27){
+        while(process_char_funcs!=NULL){
+            process_char_funcs->process_char(c);
+            process_char_funcs=process_char_funcs->next;
+        }
+    }else if(c<27){
+        while(process_ctrl_funcs!=NULL){
+            process_ctrl_funcs->process_ctrl_char(c);
+            process_ctrl_funcs=process_ctrl_funcs->next;
+        }
+    }else{
+        getchar();
+        ARROW arrow=getchar()-'A';
+        while(process_arrow_funcs!=NULL){
+            process_arrow_funcs->process_arrow(arrow);
+            process_arrow_funcs=process_arrow_funcs->next;
+        }
+    }
+}
 void process_ctrl_char(char);
 void read_keys()
 {
@@ -57,6 +78,22 @@ void read_keys()
     }
     tcsetattr(STDIN_FILENO, TCSANOW, &old_settings);
     printf("\nterminal input ended\n");
+}
+char end_terminal_input=0;
+void ctrl_e_end(char c){
+    end_terminal_input=c==CTRL_('E');
+}
+void read_process_keys(process_arrow_func_list* process_arrow_funcs, process_char_func_list* process_char_funcs, process_ctrl_func_list* process_ctrl_funcs){
+    struct termios old_settings, new_settings;
+    tcgetattr(STDIN_FILENO, &old_settings);
+    new_settings = old_settings;
+    new_settings.c_lflag &= ~(ICANON | ECHO | ISIG);
+    tcsetattr(STDIN_FILENO, TCSANOW, &new_settings);
+    while (!end_terminal_input)
+    {
+        read_process_key(process_arrow_funcs, process_char_funcs, process_ctrl_funcs);
+    }
+    tcsetattr(STDIN_FILENO, TCSANOW, &old_settings);
 }
 void process_ctrl_char(char c)
 {
@@ -85,7 +122,7 @@ cursor cursor_get_cursor_position()
 //    read(0, result.position, 2);
     for (int i = 0; i < 2; i++)
     {
-        result.position[i] = getc(STDIN_FILENO);
+        result.position[i] = getc(stdout);//getc(STDIN_FILENO);
     }
     tcsetattr(STDIN_FILENO, TCSANOW, &old_settings);
     return result;

@@ -14,6 +14,21 @@ typedef struct
 #define IS_CTRL(l)   !(l > 'Z' - preA || l < 1)
 #define CTRL_(l)     (l - preA)
 #define TO_LETTER(l) (l + preA)
+typedef enum{
+    UP,DOWN,RIGHT,LEFT
+}ARROW;
+typedef struct process_arrow_func_list{
+    void (*process_arrow)(ARROW arrow);
+    struct process_arrow_func_list* next;
+}process_arrow_func_list;
+typedef struct process_char_func_list{
+    void (*process_char)(char c);
+    struct process_char_func_list* next;
+}process_char_func_list;
+typedef struct process_ctrl_func_list{
+    void (*process_ctrl_char)(char c);
+    struct process_ctrl_func_list* next;
+}process_ctrl_func_list;
 
 //some comment about functions
 char read_key();

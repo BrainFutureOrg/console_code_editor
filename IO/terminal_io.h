@@ -30,6 +30,17 @@ typedef struct process_ctrl_func_list{
     struct process_ctrl_func_list* next;
 }process_ctrl_func_list;
 
+//global lists of key input processing functions
+process_arrow_func_list* general_arrow_process_funcs=NULL;
+process_char_func_list* general_char_process_funcs=NULL;
+process_ctrl_func_list* general_ctrl_process_funcs=NULL;
+
+//read keys and apply processing lists to them
+void read_process_keys(process_arrow_func_list* process_arrow_funcs, process_char_func_list* process_char_funcs, process_ctrl_func_list* process_ctrl_funcs);
+
+//terminal input ender (affects read_process_keys function)
+void ctrl_e_end(char c);
+
 //some comment about functions
 char read_key();
 void read_keys();

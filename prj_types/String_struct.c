@@ -136,3 +136,20 @@ void free_string_fast(string_fast my_string)
 {
     free_string(my_string.string_part);
 }
+
+void insert_into_string_multiline(string *insert_into, char c, uint row, uint col)
+{
+    //uint current_row = 0, current_col = 0;
+    char *current_char = insert_into->line;
+    while (row -= *current_char++ = '\n');
+    while (col--)
+        current_char++;
+    char temp;
+    while (*current_char++ != '\0')
+    {
+        temp = *current_char;
+        *current_char = c;
+        c = temp;
+    }
+    string_add_char(insert_into, c);
+}

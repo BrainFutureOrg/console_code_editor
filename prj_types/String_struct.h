@@ -64,4 +64,7 @@ void string_array_push(string_array *array, void *element);
 void *string_array_pop(string_array *array);
 void free_string_array(string_array *array);
 
+// insert character into string, string is viewed as a text with lines ended with '\n'
+void insert_into_string_multiline(string *insert_into, char c, uint row, uint col);
+
 #endif //CONSOLE_CODE_EDITOR__STRING_STRUCT_H

@@ -23,6 +23,13 @@ typedef struct
     unsigned int last_element;
 } string_fast;
 
+typedef struct
+{
+    int size;
+    int allocd_size;
+    string *elements;
+} string_array;
+
 string string_create_new(uint len);
 string string_create_from_fcharp(char *fcharp, ...);
 
@@ -47,5 +54,14 @@ void string_fast_add_string(string_fast *my_string1, string my_string2);
 void string_fast_add_charp(string_fast *my_string, char *charp);
 
 void free_string_fast(string_fast my_string);
+
+string_array string_array_create();
+void string_array_add_elements_to_end(string_array *array, int number, void **elements);
+void *string_array_get_element(string_array *array, int number);
+void string_array_delete_element(string_array *array, int number);
+void string_array_set_element(string_array *array, int number, void *element);
+void string_array_push(string_array *array, void *element);
+void *string_array_pop(string_array *array);
+void free_string_array(string_array *array);
 
 #endif //CONSOLE_CODE_EDITOR__STRING_STRUCT_H

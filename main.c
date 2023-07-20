@@ -14,7 +14,7 @@ int main(int argc, char **argv)
     print_logo();
     tests();
 
-    test_cursor_functions();
+    //test_cursor_functions();// test that prints strange things
 //    test_console_games_functions(2);
 //    test_urectangle_region_functionality();
 //    test_interesting_picture();

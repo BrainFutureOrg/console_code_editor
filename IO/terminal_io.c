@@ -39,24 +39,35 @@ char read_key()
     }
     return c;
 }
-void read_process_key(process_arrow_func_list* process_arrow_funcs, process_char_func_list* process_char_funcs, process_ctrl_func_list* process_ctrl_funcs){
+void read_process_key(process_arrow_func_list *process_arrow_funcs,
+                      process_char_func_list *process_char_funcs,
+                      process_ctrl_func_list *process_ctrl_funcs)
+{
     char c;
-    if((c=getchar())>27){
-        while(process_char_funcs!=NULL){
+    if ((c = getchar()) > 27)
+    {
+        while (process_char_funcs != NULL)
+        {
             process_char_funcs->process_char(c);
-            process_char_funcs=process_char_funcs->next;
+            process_char_funcs = process_char_funcs->next;
         }
-    }else if(c<27){
-        while(process_ctrl_funcs!=NULL){
+    }
+    else if (c < 27)
+    {
+        while (process_ctrl_funcs != NULL)
+        {
             process_ctrl_funcs->process_ctrl_char(c);
-            process_ctrl_funcs=process_ctrl_funcs->next;
+            process_ctrl_funcs = process_ctrl_funcs->next;
         }
-    }else{
+    }
+    else
+    {
         getchar();
-        ARROW arrow=getchar()-'A';
-        while(process_arrow_funcs!=NULL){
+        ARROW arrow = getchar() - 'A';
+        while (process_arrow_funcs != NULL)
+        {
             process_arrow_funcs->process_arrow(arrow);
-            process_arrow_funcs=process_arrow_funcs->next;
+            process_arrow_funcs = process_arrow_funcs->next;
         }
     }
 }
@@ -80,11 +91,18 @@ void read_keys()
     tcsetattr(STDIN_FILENO, TCSANOW, &old_settings);
     printf("\nterminal input ended\n");
 }
-char end_terminal_input=0;
-void ctrl_e_end(char c){
-    end_terminal_input=c==CTRL_('E');
+char end_terminal_input = 0;
+process_arrow_func_list *general_arrow_process_funcs = NULL;
+process_char_func_list *general_char_process_funcs = NULL;
+process_ctrl_func_list *general_ctrl_process_funcs = NULL;
+void ctrl_e_end(char c)
+{
+    end_terminal_input = c == CTRL_('E');
 }
-void read_process_keys(process_arrow_func_list* process_arrow_funcs, process_char_func_list* process_char_funcs, process_ctrl_func_list* process_ctrl_funcs){
+void read_process_keys(process_arrow_func_list *process_arrow_funcs,
+                       process_char_func_list *process_char_funcs,
+                       process_ctrl_func_list *process_ctrl_funcs)
+{
     struct termios old_settings, new_settings;
     tcgetattr(STDIN_FILENO, &old_settings);
     new_settings = old_settings;

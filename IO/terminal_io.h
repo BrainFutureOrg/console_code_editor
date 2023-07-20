@@ -14,29 +14,41 @@ typedef struct
 #define IS_CTRL(l)   !(l > 'Z' - preA || l < 1)
 #define CTRL_(l)     (l - preA)
 #define TO_LETTER(l) (l + preA)
-typedef enum{
-    UP,DOWN,RIGHT,LEFT
-}ARROW;
-typedef struct process_arrow_func_list{
-    void (*process_arrow)(ARROW arrow);
-    struct process_arrow_func_list* next;
-}process_arrow_func_list;
-typedef struct process_char_func_list{
-    void (*process_char)(char c);
-    struct process_char_func_list* next;
-}process_char_func_list;
-typedef struct process_ctrl_func_list{
-    void (*process_ctrl_char)(char c);
-    struct process_ctrl_func_list* next;
-}process_ctrl_func_list;
+typedef enum
+{
+    UP, DOWN, RIGHT, LEFT
+} ARROW;
+typedef struct process_arrow_func_list process_arrow_func_list;
+typedef struct process_char_func_list process_char_func_list;
+typedef struct process_ctrl_func_list process_ctrl_func_list;
+struct process_arrow_func_list
+{
+    void
+    (*process_arrow)(ARROW arrow);
+    process_arrow_func_list *next;
+};
+struct process_char_func_list
+{
+    void
+    (*process_char)(char c);
+    process_char_func_list *next;
+};
+struct process_ctrl_func_list
+{
+    void
+    (*process_ctrl_char)(char c);
+    process_ctrl_func_list *next;
+};
 
 //global lists of key input processing functions
-process_arrow_func_list* general_arrow_process_funcs=NULL;
-process_char_func_list* general_char_process_funcs=NULL;
-process_ctrl_func_list* general_ctrl_process_funcs=NULL;
+extern process_arrow_func_list *general_arrow_process_funcs;
+extern process_char_func_list *general_char_process_funcs;
+extern process_ctrl_func_list *general_ctrl_process_funcs;
 
 //read keys and apply processing lists to them
-void read_process_keys(process_arrow_func_list* process_arrow_funcs, process_char_func_list* process_char_funcs, process_ctrl_func_list* process_ctrl_funcs);
+void read_process_keys(process_arrow_func_list *process_arrow_funcs,
+                       process_char_func_list *process_char_funcs,
+                       process_ctrl_func_list *process_ctrl_funcs);
 
 //terminal input ender (affects read_process_keys function)
 void ctrl_e_end(char c);

@@ -115,3 +115,19 @@ void test_cursor_functions()
     free_string(file_text);
 }
 
+void test_global()
+{
+    static char entered = 0;
+    if (!entered)
+    {
+        process_arrow_func_list dummy_list;
+        general_arrow_process_funcs = &dummy_list;
+    }
+    printf("global list is %s null, iteration %d", general_arrow_process_funcs != NULL ? "not" : "", entered);
+    if (!entered)
+    {
+        entered++;
+        test_global();
+    }
+}
+

@@ -48,7 +48,7 @@ void read_process_key(process_arrow_func_list *process_arrow_funcs,
     {
         while (process_char_funcs != NULL)
         {
-            process_char_funcs->process_char(c);
+            process_char_funcs->process_char(c, process_char_funcs->args);
             process_char_funcs = process_char_funcs->next;
         }
     }
@@ -56,7 +56,7 @@ void read_process_key(process_arrow_func_list *process_arrow_funcs,
     {
         while (process_ctrl_funcs != NULL)
         {
-            process_ctrl_funcs->process_ctrl_char(c);
+            process_ctrl_funcs->process_ctrl_char(c, process_ctrl_funcs->args);
             process_ctrl_funcs = process_ctrl_funcs->next;
         }
     }
@@ -66,7 +66,7 @@ void read_process_key(process_arrow_func_list *process_arrow_funcs,
         ARROW arrow = getchar() - 'A';
         while (process_arrow_funcs != NULL)
         {
-            process_arrow_funcs->process_arrow(arrow);
+            process_arrow_funcs->process_arrow(arrow, process_arrow_funcs->args);
             process_arrow_funcs = process_arrow_funcs->next;
         }
     }

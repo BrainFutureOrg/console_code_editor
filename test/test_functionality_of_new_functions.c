@@ -111,7 +111,6 @@ void test_cursor_functions()
     printf("one more text in end\n");
     sleep(2);
 
-    free_cursor(start_pos);
     free_string(file_text);
 }
 

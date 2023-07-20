@@ -1,12 +1,8 @@
 //
 // Created by kosenko on 06.07.23.
 //
-#include <stdio.h>
+#include <errno.h>
 #include "terminal_io.h"
-#include <unistd.h>
-#include <termios.h>
-#include <malloc.h>
-#include <stdarg.h>
 
 char read_key()
 {
@@ -128,20 +124,49 @@ void process_ctrl_char(char c)
 
 cursor cursor_get_cursor_position()
 {
-    cursor result;
-    result.position = malloc(2);
+    cursor result = {0, 0};
+
+    char buf[30] = {0};
+    int ret, i, pow;
+    char ch;
 
     struct termios old_settings, new_settings;
+
     tcgetattr(STDIN_FILENO, &old_settings);
     new_settings = old_settings;
-    new_settings.c_lflag &= ~(ICANON | ECHO | ISIG);
+    new_settings.c_lflag &= ~(ICANON | ECHO);
     tcsetattr(STDIN_FILENO, TCSANOW, &new_settings);
 
-//    terminal_get_cursor_position;
-//    read(0, result.position, 2);
-    for (int i = 0; i < 2; i++)
+    terminal_get_cursor_position;
+
+    for (i = 0, ch = 0; ch != 'R'; i++)
     {
-        result.position[i] = getc(stdout);//getc(STDIN_FILENO);
+        ret = read(0, &ch, 1);
+        if (!ret)
+        {
+            tcsetattr(0, TCSANOW, &old_settings);
+            errno = EACCES;
+            return result;
+        }
+        buf[i] = ch;
+//        printf("buf[%d]: \t%c \t%d\n", i, ch, ch);
+    }
+
+    if (i < 2)
+    {
+        tcsetattr(0, TCSANOW, &old_settings);
+        errno = EFAULT;
+        return result;
+    }
+
+    for (i -= 2, pow = 1; buf[i] != ';'; i--, pow *= 10)
+    {
+        result.x = result.x + (buf[i] - '0') * pow;
+    }
+
+    for (i--, pow = 1; buf[i] != '['; i--, pow *= 10)
+    {
+        result.y = result.y + (buf[i] - '0') * pow;
     }
     tcsetattr(STDIN_FILENO, TCSANOW, &old_settings);
     return result;
@@ -158,15 +183,9 @@ void cursor_printf_at_position(cursor my_cursor, char *format, ...)
     va_end(args);
 
     cursor_go_to_position(start_pos);
-    free_cursor(start_pos);
 }
 
 void cursor_print_position(cursor my_cursor)
 {
-    printf("position is %s\n", my_cursor.position);
-}
-
-void free_cursor(cursor my_cursor)
-{
-    free(my_cursor.position);
+    printf("position is x = %d, y = %d\n", my_cursor.x, my_cursor.y);
 }

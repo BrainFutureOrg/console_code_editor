@@ -5,9 +5,14 @@
 #ifndef CONSOLE_CODE_EDITOR_TERMINAL_IO_H
 #define CONSOLE_CODE_EDITOR_TERMINAL_IO_H
 
+#include <unistd.h>
+#include <termios.h>
+#include <stdarg.h>
+#include <stdio.h>
+
 typedef struct
 {
-    char *position;
+    int x, y;
 } cursor;
 // CTRL controls
 #define preA ('A' - 1)
@@ -71,7 +76,7 @@ void read_keys();
 #define terminal_go_home                                   printf(ESC"[H")
 
 /* moves cursor to line x, column y */
-#define terminal_goto_xy(x, y)                             printf(ESC"[%d;%dH",x,y)
+#define terminal_goto_xy(x, y)                             printf(ESC"[%d;%dH",y,x)
 
 /* moves cursor up x lines */
 #define terminal_go_up_x(x)                                printf(ESC"[%dA",x)
@@ -95,17 +100,15 @@ void read_keys();
 #define terminal_go_to_x_column(x)                         printf(ESC"[%dG",x)
 
 /* request cursor position (reports as ESC[#;#R) */
-#define terminal_get_cursor_position                       printf(ESC"[6n")
+#define terminal_get_cursor_position                       write(STDOUT_FILENO, "\033[6n", 4)
 
 cursor cursor_get_cursor_position();
 
 void cursor_print_position(cursor my_cursor);
 
-#define cursor_go_to_position(my_cursor)                   printf(ESC"[%sH",my_cursor.position)
+#define cursor_go_to_position(my_cursor)                   terminal_goto_xy(my_cursor.x, my_cursor.y)
 
 void cursor_printf_at_position(cursor my_cursor, char *format, ...);
-
-void free_cursor(cursor my_cursor);
 
 /* moves cursor one line up, scrolling if needed */
 #define terminal_go_one_up_with_scroll                     printf(ESC" M")

@@ -16,6 +16,12 @@ void print_error()
         case EINVAL:
             color_from_parts_printf(BOLD | FOREGROUND_RED, "ERROR: EINVAL\n");
             break;
+        case EACCES:
+            color_from_parts_printf(BOLD | FOREGROUND_RED, "ERROR: reading response!\n");
+            break;
+        case EFAULT:
+            color_from_parts_printf(BOLD | FOREGROUND_RED, "ERROR: i<2\n");
+            break;
         default:
             color_from_parts_printf(BOLD | FOREGROUND_RED, "ERROR\n");
             break;

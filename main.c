@@ -9,6 +9,17 @@
 
 void tests();
 
+void moving_text_prototype()
+{
+    terminal_erase_screen;
+    color_to_rgb_background(0, 0, 50);
+    string text = string_create_from_fcharp("aaaaaaaaaaaaaaaaaaaaaaaaaaaaa\nbbb\nc\nd\ne\nf\nggggggggggggggggggggggg");
+    urectangle region = {5, 20, 5, 20};
+    start_moving_readonly_segment(text, region);
+    free_string(text);
+    color_to_default();
+}
+
 int main(int argc, char **argv)
 {
     print_logo();
@@ -19,6 +30,8 @@ int main(int argc, char **argv)
 //    test_urectangle_region_functionality();
 //    test_interesting_picture();
 //    read_keys();//no delete
+
+    moving_text_prototype();
 
     if (errno)
     {

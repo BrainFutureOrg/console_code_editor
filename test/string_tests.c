@@ -149,6 +149,32 @@ void str_array_test()
     free_string_array(&arr);
 }
 
+void str_split_test()
+{
+    char *line = "Hello it`s me";
+//    int num_of_splited = 3;
+    string_array right_result = string_array_create();
+    string_array_push_charp(&right_result, "Hello");
+    string_array_push_charp(&right_result, "it`s");
+    string_array_push_charp(&right_result, "me");
+
+    string_array splited = string_split(line, string_split_is_space);
+
+    assert_equality_int(splited.size, right_result.size, "string split: split_number");
+    for (int i = 0; i < right_result.size; i++)
+    {
+        string got_element = string_array_get_element(&splited, i);
+        string got_element1 = string_array_get_element(&right_result, i);
+        string error_text = string_create_from_fcharp("string split: equality element %d", i);
+        assert_equality_string(got_element, got_element1, error_text.line);
+        free_string(error_text);
+        free_string(got_element);
+        free_string(got_element1);
+    }
+    free_string_array(&right_result);
+    free_string_array(&splited);
+}
+
 void apply_string_tests()
 {
     color_from_parts_printf(DEFAULT | BOLD | FOREGROUND_CYAN, "STRING TESTS START\n");
@@ -166,5 +192,6 @@ void apply_string_tests()
     str_format_test();
     str_format_test_zfill();
     str_array_test();
+    str_split_test();
     color_from_parts_printf(DEFAULT | BOLD | FOREGROUND_CYAN, "STRING TESTS END\n");
 }

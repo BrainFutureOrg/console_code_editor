@@ -7,17 +7,18 @@
 
 string_array string_array_create()
 {
-    return (string_array){0, 0, NULL};
+    uint start_alloc_size = 10;
+    return (string_array){0, start_alloc_size, calloc(start_alloc_size, sizeof(string))};
 }
 
-void string_array_add_elements_to_end(string_array *array, int number, string *elements)
+void string_array_add_elements_to_end(string_array *array, uint number, string *elements)
 {
     while (number-- > 0)
     {
         string_array_push(array, *(elements++));
     }
 }
-string string_array_get_element(string_array *array, int number)
+string string_array_get_element(string_array *array, uint number)
 {
     if (number < array->size)
     {
@@ -27,8 +28,13 @@ string string_array_get_element(string_array *array, int number)
     return string_create_new(1);
 }
 
-void string_array_delete_element(string_array *array, int number)
+void string_array_delete_element(string_array *array, uint number)
 {
+    if (number >= array->size)
+    {
+        errno = E2BIG;
+        return;
+    }
     string *deleted = array->elements + number;
     free_string(*deleted);
     while (deleted - array->elements < array->size)
@@ -39,8 +45,13 @@ void string_array_delete_element(string_array *array, int number)
     array->size--;
 }
 
-void string_array_set_element(string_array *array, int number, string element)
+void string_array_set_element(string_array *array, uint number, string element)
 {
+    if (number >= array->size)
+    {
+        errno = E2BIG;
+        return;
+    }
     *(array->elements + number) = string_copy(element);
 }
 
@@ -67,6 +78,11 @@ void string_array_push(string_array *array, string element)
 }
 string string_array_pop(string_array *array)
 {
+    if (array->size == 0)
+    {
+        errno = E2BIG;
+        return string_create_new(1);
+    }
     return array->elements[--array->size];
 }
 void free_string_array(string_array *array)
@@ -78,4 +94,46 @@ void free_string_array(string_array *array)
     }
     free(array->elements);
     array->size = array->allocd_size = 0;
+}
+
+void string_array_push_charp(string_array *array, char *element)
+{
+    string new = string_create_from_fcharp(element);
+    string_array_push(array, new);
+    free_string(new);
+}
+
+string_array string_split(char *my_string, char (*split_func)(char *))
+{
+    string_array result = string_array_create();
+    char *end_pointer = my_string;
+    int num_of_shift;
+    while (*end_pointer != '\0')
+    {
+        num_of_shift = split_func(end_pointer);
+        if (num_of_shift)
+        {
+            if (end_pointer != my_string)
+            {
+                string_fast new = string_fast_create_new(end_pointer - my_string + 1);
+                while (end_pointer > my_string)
+                {
+                    string_fast_add_char(&new, *my_string++);
+                }
+
+                string_array_push(&result, new.string_part);
+                free_string_fast(new);
+            }
+            end_pointer += num_of_shift;
+            my_string = end_pointer;
+            continue;
+        }
+        end_pointer++;
+    }
+    string_array_push_charp(&result, my_string);
+    return result;
+}
+char string_split_is_space(char *charp)
+{
+    return *charp == ' ';
 }

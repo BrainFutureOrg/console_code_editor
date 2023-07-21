@@ -15,7 +15,13 @@
     string_pointer_equals, test_name, "strings: \"%s\" \"%s\"", s1.line, s2.line)
 #define assert_non_equality_string_charp(s1, s2, test_name) assertNotEqual(&s1, &s2,\
     string_pointer_char_pointer_equals, test_name, "strings: \"%s\" \"%s\"", s1.line, s2.line)
+#define assert_equality_int(i1, i2, test_name) assertEqual(&i1, &i2,\
+    int_pointer_equals, test_name, "ints: \"%d\" \"%d\"", i1, i2)
 
+char int_pointer_equals(void *i1, void *i2)
+{
+    return (char)(*((int *)i1) == *((int *)i2));
+}
 char string_pointer_equals(void *str1, void *str2)
 {
     return string_equals(*((string *)str1), *((string *)str2));
@@ -126,6 +132,23 @@ void str_format_test_zfill()
     free_string(s1);
 }
 
+void str_array_test()
+{
+    string_array arr = string_array_create();
+    string to_add = string_create_from_fcharp("Something");
+    int num = 10;
+    for (int I = 0; I < num; ++I)
+    {
+        string_array_push(&arr, to_add);
+    }
+    string got_element = string_array_get_element(&arr, 1);
+    assert_equality_string(got_element, to_add, "string array: add element");
+    assert_equality_int(arr.size, num, "string array: change size");
+    free_string(got_element);
+    free_string(to_add);
+    free_string_array(&arr);
+}
+
 void apply_string_tests()
 {
     color_from_parts_printf(DEFAULT | BOLD | FOREGROUND_CYAN, "STRING TESTS START\n");
@@ -142,5 +165,6 @@ void apply_string_tests()
 
     str_format_test();
     str_format_test_zfill();
+    str_array_test();
     color_from_parts_printf(DEFAULT | BOLD | FOREGROUND_CYAN, "STRING TESTS END\n");
 }

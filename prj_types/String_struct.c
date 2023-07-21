@@ -153,3 +153,11 @@ void insert_into_string_multiline(string *insert_into, char c, uint row, uint co
     }
     string_add_char(insert_into, c);
 }
+
+string string_copy(string old)
+{
+    string new = string_create_new(old.len);
+    char *str_new_charp = new.line;
+    while ((*str_new_charp++ = *old.line++) != '\0');
+    return new;
+}

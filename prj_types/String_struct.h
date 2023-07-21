@@ -25,13 +25,14 @@ typedef struct
 
 typedef struct
 {
-    int size;
-    int allocd_size;
+    unsigned int size;
+    unsigned int allocd_size;
     string *elements;
 } string_array;
 
 string string_create_new(uint len);
 string string_create_from_fcharp(char *fcharp, ...);
+string string_copy(string old);
 
 void string_add_char(string *my_string, char symbol);
 void string_add_string(string *my_string1, string my_string2);
@@ -56,12 +57,12 @@ void string_fast_add_charp(string_fast *my_string, char *charp);
 void free_string_fast(string_fast my_string);
 
 string_array string_array_create();
-void string_array_add_elements_to_end(string_array *array, int number, void **elements);
-void *string_array_get_element(string_array *array, int number);
+void string_array_add_elements_to_end(string_array *array, int number, string *elements);
+string string_array_get_element(string_array *array, int number);
 void string_array_delete_element(string_array *array, int number);
-void string_array_set_element(string_array *array, int number, void *element);
-void string_array_push(string_array *array, void *element);
-void *string_array_pop(string_array *array);
+void string_array_set_element(string_array *array, int number, string element);
+void string_array_push(string_array *array, string element);
+string string_array_pop(string_array *array);
 void free_string_array(string_array *array);
 
 // insert character into string, string is viewed as a text with lines ended with '\n'

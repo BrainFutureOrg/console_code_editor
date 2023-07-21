@@ -22,6 +22,9 @@ void print_error()
         case EFAULT:
             color_from_parts_printf(BOLD | FOREGROUND_RED, "ERROR: i<2\n");
             break;
+        case EKEYEXPIRED:
+            color_from_parts_printf(BOLD | FOREGROUND_RED, "ERROR: invalid argument\n");
+            break;
         default:
             color_from_parts_printf(BOLD | FOREGROUND_RED, "ERROR\n");
             break;

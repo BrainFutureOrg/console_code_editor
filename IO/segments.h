@@ -14,5 +14,6 @@ typedef struct urectangle
 } urectangle;
 void print_string_segment_primitive(string str, COLOR inner_color, urectangle screen_region);
 void start_moving_readonly_segment(string str, urectangle screen_region);
+void start_write_segment(string str, urectangle screen_region);
 
 #endif //CONSOLE_CODE_EDITOR_SEGMENTS_H

@@ -53,6 +53,21 @@ extern process_arrow_func_list *general_arrow_process_funcs;
 extern process_char_func_list *general_char_process_funcs;
 extern process_ctrl_func_list *general_ctrl_process_funcs;
 
+//append element to processing list of type
+#define append_processing(list_type, list_name, element_pointer) list_type *list = list_name;\
+if (list_name == NULL)\
+{\
+list_name = element_pointer;\
+}\
+else\
+{\
+while (list->next != NULL)\
+{\
+list = list->next;\
+}\
+list->next = element_pointer;\
+}
+
 //read keys and apply processing lists to them
 void read_process_keys(process_arrow_func_list *process_arrow_funcs,
                        process_char_func_list *process_char_funcs,

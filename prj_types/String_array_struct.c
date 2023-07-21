@@ -137,3 +137,50 @@ char string_split_is_space(char *charp)
 {
     return *charp == ' ';
 }
+
+void string_array_print_type_1(string_array *array)
+{
+    for (int i = 0; i < array->size; i++)
+    {
+        printf("%s ", string_array_get_element(array, i).line);
+    }
+    putchar('\n');
+}
+void string_array_print_type_2(string_array *array)
+{
+    for (int i = 0; i < array->size; i++)
+    {
+        if (i != 0)
+        {
+            printf(", ");
+        }
+        printf("\"%s\"", string_array_get_element(array, i).line);
+    }
+    putchar('\n');
+}
+void string_array_print_type_3(string_array *array)
+{
+    for (int i = 0; i < array->size; i++)
+    {
+        printf("element %d: %s\n", i + 1, string_array_get_element(array, i).line);
+    }
+}
+
+void string_array_print(string_array *array, char type)
+{
+    switch (type)
+    {
+        case 1:
+            string_array_print_type_1(array);
+            break;
+        case 2:
+            string_array_print_type_2(array);
+            break;
+        case 3:
+            string_array_print_type_3(array);
+            break;
+        default:
+            errno = EKEYEXPIRED;
+            break;
+    }
+}

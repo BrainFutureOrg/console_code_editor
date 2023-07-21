@@ -64,6 +64,12 @@ void string_array_set_element(string_array *array, uint number, string element);
 void string_array_push(string_array *array, string element);
 void string_array_push_charp(string_array *array, char *element);
 string string_array_pop(string_array *array);
+/* Function to print string array
+ * arguments: array - array for print
+ *            type - 1 - in one line with space separation
+ *                   2 - with "" and separate with ,
+ *                   3 - every element in new line with their number*/
+void string_array_print(string_array *array, char type);
 void free_string_array(string_array *array);
 
 // insert character into string, string is viewed as a text with lines ended with '\n'

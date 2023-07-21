@@ -141,15 +141,18 @@ void insert_into_string_multiline(string *insert_into, char c, uint row, uint co
 {
     //uint current_row = 0, current_col = 0;
     char *current_char = insert_into->line;
-    while (row -= *current_char++ = '\n');
+    while (row)
+        row -= *current_char++ == '\n';
+
     while (col--)
         current_char++;
     char temp;
-    while (*current_char++ != '\0')
+    while (*current_char != '\0')
     {
         temp = *current_char;
         *current_char = c;
         c = temp;
+        current_char++;
     }
     string_add_char(insert_into, c);
 }

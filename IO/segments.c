@@ -315,9 +315,34 @@ void process_arrow_in_writeable(ARROW arrow, void *args)
                   args_struct->str_col - args_struct->shift_col + args_struct->screen_region.col_start)
 }
 
+void process_char_in_writeable(char c, void* args){
+    struct write_segment_params *args_struct=args;
+    insert_into_string_multiline(&args_struct->str, c, args_struct->str_row, args_struct->str_col);
+    if(c=='\n'){
+        args_struct->str_col=0;
+        if(args_struct->str_row==args_struct->shift_row+args_struct->screen_region.row_end-args_struct->screen_region.row_start-1)args_struct->shift_row++;
+        args_struct->shift_col=0;
+        args_struct->str_row++;
+    }else{
+        if(args_struct->str_col==args_struct->shift_col+args_struct->screen_region.col_end-args_struct->screen_region.col_start-1)args_struct->shift_col++;
+        args_struct->str_col++;
+    }
+    char *line = args_struct->str.line;
+    uint newline_count = 0;
+    while (*line != '\0' && newline_count < args_struct->shift_row)
+    {
+        newline_count += *line++ == '\n';
+    }
+    print_segment_plaintext_shifted(line, args_struct->screen_region, args_struct->shift_col);
+    terminal_goto(args_struct->str_row - args_struct->shift_row + args_struct->screen_region.row_start,
+                  args_struct->str_col - args_struct->shift_col + args_struct->screen_region.col_start)
+}
+
 void start_write_segment(string str, urectangle screen_region)
 {
     print_segment_plaintext_shifted(str.line, screen_region, 0);
+    terminal_goto(screen_region.row_start, screen_region.col_start)
+
     struct write_segment_params args;
     args.str_row = args.str_col = args.shift_row = args.shift_col = 0;
     args.screen_region = screen_region;
@@ -327,6 +352,12 @@ void start_write_segment(string str, urectangle screen_region)
     list_element.args = &args;
     list_element.process_arrow = process_arrow_in_writeable;
     append_processing(process_arrow_func_list, general_arrow_process_funcs, &list_element)
+
+    process_char_func_list list_element_char;
+    list_element_char.args=&args;
+    list_element_char.next=NULL;
+    list_element_char.process_char=process_char_in_writeable;
+    {append_processing(process_char_func_list, general_char_process_funcs, &list_element_char)}
     read_process_keys(general_arrow_process_funcs,
                       general_char_process_funcs,
                       general_ctrl_process_funcs);

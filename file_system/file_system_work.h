@@ -24,5 +24,6 @@ files_dirs_from_directory system_anchor_get_dir_content(file_system_anchor ancho
 
 void system_anchor_go_to_dir(file_system_anchor *anchor, string directory_name);
 void system_anchor_go_back_from_dir(file_system_anchor *anchor);
+string system_anchor_get_directory_name(file_system_anchor *anchor);
 
 #endif //CONSOLE_CODE_EDITOR_FILE_SYSTEM_FILE_SYSTEM_WORK_H

@@ -91,3 +91,14 @@ string system_anchor_get_directory_name(file_system_anchor *anchor)
     while (*--end != '\\');
     return string_create_from_fcharp(end + 1);
 }
+
+void free_file_system_anchor(file_system_anchor anchor)
+{
+    free_string(anchor.path);
+}
+void free_files_dirs_from_directory(files_dirs_from_directory dirs)
+{
+    free_string_array(&dirs.dirs);
+    free_string_array(&dirs.files);
+    free_string_array(&dirs.else_files);
+}

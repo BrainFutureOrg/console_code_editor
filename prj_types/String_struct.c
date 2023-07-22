@@ -157,6 +157,20 @@ void insert_into_string_multiline(string *insert_into, char c, uint row, uint co
     string_add_char(insert_into, c);
 }
 
+void delete_from_string_multiline(string *delete_from, uint row, uint col)
+{
+    char *current_char = delete_from->line;
+    while (row)
+        row -= *current_char++ == '\n';
+    while (col--)
+        current_char++;
+    while (*current_char != '\0')
+    {
+        *current_char = *(current_char + 1);
+        current_char++;
+    }
+}
+
 string string_copy(string old)
 {
     string new = string_create_new(old.len);

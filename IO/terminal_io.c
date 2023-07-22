@@ -40,7 +40,7 @@ void read_process_key(process_arrow_func_list *process_arrow_funcs,
                       process_ctrl_func_list *process_ctrl_funcs)
 {
     char c;
-    if ((c = getchar()) > 27 || c == '\n')
+    if ((c = getchar()) > 27 || c == '\n' || c == '\b')
     {
         while (process_char_funcs != NULL)
         {
@@ -87,13 +87,19 @@ void read_keys()
     tcsetattr(STDIN_FILENO, TCSANOW, &old_settings);
     printf("\nterminal input ended\n");
 }
+
 char end_terminal_input = 0;
 process_arrow_func_list *general_arrow_process_funcs = NULL;
 process_char_func_list *general_char_process_funcs = NULL;
 process_ctrl_func_list *general_ctrl_process_funcs = NULL;
-void ctrl_e_end(char c)
+/*void ctrl_e_end(char c)
 {
     end_terminal_input = c == CTRL_('E');
+}*/
+
+void finish_terminal_input()
+{
+    end_terminal_input = 1;
 }
 void read_process_keys(process_arrow_func_list *process_arrow_funcs,
                        process_char_func_list *process_char_funcs,

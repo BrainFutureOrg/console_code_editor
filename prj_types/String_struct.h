@@ -74,6 +74,8 @@ void free_string_array(string_array *array);
 
 // insert character into string, string is viewed as a text with lines ended with '\n'
 void insert_into_string_multiline(string *insert_into, char c, uint row, uint col);
+// delete character from string, string is viewed as a text with lines ended with '\n'
+void delete_from_string_multiline(string *delete_from, uint row, uint col);
 
 /* Split function
  * arguments: my_string - pointer to the start of line

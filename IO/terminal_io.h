@@ -189,4 +189,6 @@ void cursor_printf_at_position(cursor my_cursor, char *format, ...);
 
 /*  */
 
+void finish_terminal_input();
+
 #endif //CONSOLE_CODE_EDITOR_TERMINAL_IO_H

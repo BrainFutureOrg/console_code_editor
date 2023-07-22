@@ -16,9 +16,16 @@ void moving_text_prototype()
     string text = string_create_from_fcharp("");
     urectangle region = {5, 15, 5, 50};
     //start_moving_readonly_segment(text, region);
-    start_write_segment(text, region);
+    start_write_segment(&text, region);
     free_string(text);
     color_to_default();
+}
+
+void UIprototype()
+{
+    string text = string_create_from_fcharp("");
+    start_plaintext_editor_UI_regular(&text);
+    free_string(text);
 }
 
 int main(int argc, char **argv)
@@ -32,7 +39,8 @@ int main(int argc, char **argv)
 //    test_interesting_picture();
 //    read_keys();//no delete
 
-    moving_text_prototype();
+    //moving_text_prototype();
+    UIprototype();
 
     if (errno)
     {

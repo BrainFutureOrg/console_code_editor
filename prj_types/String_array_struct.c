@@ -52,6 +52,7 @@ void string_array_set_element(string_array *array, uint number, string element)
         errno = E2BIG;
         return;
     }
+    free_string(*(array->elements + number));
     *(array->elements + number) = string_copy(element);
 }
 

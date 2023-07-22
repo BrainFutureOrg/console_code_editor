@@ -14,6 +14,7 @@ typedef struct
 {
     string_array files;
     string_array dirs;
+    string_array else_files;
 } files_dirs_from_directory;
 
 file_system_anchor system_anchor_init();

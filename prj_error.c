@@ -25,6 +25,9 @@ void print_error()
         case EKEYEXPIRED:
             color_from_parts_printf(BOLD | FOREGROUND_RED, "ERROR: invalid argument\n");
             break;
+        case EBADF:
+            color_from_parts_printf(BOLD | FOREGROUND_RED, "ERROR: directory wasn't opened successfully\n");
+            break;
         default:
             color_from_parts_printf(BOLD | FOREGROUND_RED, "ERROR\n");
             break;

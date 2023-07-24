@@ -32,6 +32,8 @@ struct process_arrow_func_list
     (*process_arrow)(ARROW arrow, void *args);
     process_arrow_func_list *next;
     void *args;
+    void
+    (*free_args)(void *args);
 };
 struct process_char_func_list
 {
@@ -39,6 +41,8 @@ struct process_char_func_list
     (*process_char)(char c, void *args);
     process_char_func_list *next;
     void *args;
+    void
+    (*free_args)(void *args);
 };
 struct process_ctrl_func_list
 {
@@ -46,6 +50,8 @@ struct process_ctrl_func_list
     (*process_ctrl_char)(char c, void *args);
     process_ctrl_func_list *next;
     void *args;
+    void
+    (*free_args)(void *args);
 };
 
 //global lists of key input processing functions

@@ -142,16 +142,17 @@ void start_moving_readonly_segment(string str, urectangle screen_region)
     //terminal_erase_screen;
     print_segment_plaintext_shifted(str.line, screen_region, 0);
     //print_string_segment_primitive(str, color_create_background_rgb(200, 0, 0), screen_region);
-    struct move_readonly_params args;
-    args.shift_row = 0;
-    args.shift_col = 0;
-    args.screen_region = screen_region;
-    args.str = str;
-    process_arrow_func_list list_element;
-    list_element.process_arrow = move_arrow;
-    list_element.next = NULL;
-    list_element.args = &args;
-    append_processing(process_arrow_func_list, general_arrow_process_funcs, &list_element)
+    struct move_readonly_params *args = calloc(1, sizeof(struct move_readonly_params));
+    args->shift_row = 0;
+    args->shift_col = 0;
+    args->screen_region = screen_region;
+    args->str = str;
+    //TODO: add free for list of actions
+    process_arrow_func_list *list_element = calloc(1, sizeof(process_arrow_func_list));
+    list_element->process_arrow = move_arrow;
+    list_element->next = NULL;
+    list_element->args = args;
+    append_processing(process_arrow_func_list, general_arrow_process_funcs, list_element)
     read_process_keys(general_arrow_process_funcs,
                       general_char_process_funcs,
                       general_ctrl_process_funcs);
@@ -360,15 +361,15 @@ void start_write_segment(string *str, urectangle screen_region)
     print_segment_plaintext_shifted(str->line, screen_region, 0);
     terminal_goto(screen_region.row_start, screen_region.col_start)
 
-    struct write_segment_params args;
-    args.str_row = args.str_col = args.shift_row = args.shift_col = 0;
-    args.screen_region = screen_region;
-    args.str = str;
-    process_arrow_func_list list_element;
-    list_element.next = NULL;
-    list_element.args = &args;
-    list_element.process_arrow = process_arrow_in_writeable;
-    append_processing(process_arrow_func_list, general_arrow_process_funcs, &list_element)
+    struct write_segment_params *args = calloc(1, sizeof(struct write_segment_params));
+    args->str_row = args->str_col = args->shift_row = args->shift_col = 0;
+    args->screen_region = screen_region;
+    args->str = str;
+    process_arrow_func_list *list_element = calloc(1, sizeof(process_arrow_func_list));
+    list_element->next = NULL;
+    list_element->args = args;
+    list_element->process_arrow = process_arrow_in_writeable;
+    append_processing(process_arrow_func_list, general_arrow_process_funcs, list_element)
 
     process_char_func_list list_element_char;
     list_element_char.args = &args;

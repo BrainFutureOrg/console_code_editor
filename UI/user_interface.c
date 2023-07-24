@@ -53,3 +53,63 @@ void start_plaintext_editor_UI_regular(string *str)
     start_write_segment(str, writeable_region);
     color_to_default();
 }
+//prototype
+/*
+#include <sys/ioctl.h>
+#include <time.h>
+struct screen_size
+{
+    uint rows, columns;
+} old_size;
+char check_size = 1;
+
+int msleep(long msec)
+{
+    struct timespec ts;
+    int res;
+
+    if (msec < 0)
+    {
+        errno = EINVAL;
+        return -1;
+    }
+
+    ts.tv_sec = msec / 1000;
+    ts.tv_nsec = (msec % 1000) * 1000000;
+
+    do
+    {
+        res = nanosleep(&ts, &ts);
+    }
+    while (res && errno == EINTR);
+
+    return res;
+}
+
+struct callback
+{
+    void
+    (*callback_func)(void *args);
+    void *callback_args;
+};
+void *check_screen_size(void *func_n_args)
+{
+    struct screen_size new_size;
+    struct winsize w;
+
+    struct callback *my_callback = func_n_args;
+
+    while (check_size)
+    {
+
+        ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+        new_size.rows = w.ws_row;
+        new_size.columns = w.ws_col;
+        if (not_equals(old_size, new_size))
+        {
+            render_screens(new_size);
+        }
+        msleep(100);
+    }
+    return NULL;
+}*/

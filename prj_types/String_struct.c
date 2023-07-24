@@ -99,20 +99,19 @@ string_fast string_fast_create_new(uint len)
 string_fast string_fast_create_from_string(string initial)
 {
     string_fast result = {initial, 0};
-    result.last_element = strlen(initial.line) - 1;
+    result.last_element = strlen(initial.line);
     return result;
 }
 
 void string_fast_add_char(string_fast *my_string, char symbol)
 {
-    char is_empty = *my_string->string_part.line == '\0';
-    while (my_string->last_element + 2 - is_empty >= my_string->string_part.len)
+//    char is_empty = *my_string->string_part.line == '\0';
+    while (my_string->last_element + 1 >= my_string->string_part.len)
     {
         string_increase_len(&my_string->string_part, my_string->string_part.len);
     }
-    my_string->string_part.line[++my_string->last_element - is_empty] = symbol;
-    my_string->string_part.line[my_string->last_element + 1 - is_empty] = '\0';
-    my_string->last_element -= is_empty;
+    my_string->string_part.line[my_string->last_element++] = symbol;
+    my_string->string_part.line[my_string->last_element] = '\0';
 }
 void string_fast_add_string(string_fast *my_string1, string my_string2)
 {
@@ -123,12 +122,12 @@ void string_fast_add_charp(string_fast *my_string, char *charp)
 {
     get_end_pointer_with_create(str2, charp);
     uint len2 = str2 - charp;
-    uint full_len = my_string->last_element + len2 + 2;
+    uint full_len = my_string->last_element + len2 + 1;
     if (full_len > my_string->string_part.len)
     {
         string_increase_len(&my_string->string_part, full_len - my_string->string_part.len);
     }
-    char *str1 = my_string->string_part.line + my_string->last_element + 1;
+    char *str1 = my_string->string_part.line + my_string->last_element;
     while ('\0' != (*str1++ = *charp++));
 }
 

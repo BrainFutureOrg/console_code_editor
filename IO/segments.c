@@ -4,6 +4,8 @@
 
 #include "segments.h"
 #include "terminal_io.h"
+#include "../file_system/file_system_work.h"
+#include "../prj_types/Array_type.h"
 
 #define DEL 127
 
@@ -371,12 +373,145 @@ void start_write_segment(string *str, urectangle screen_region)
     list_element->process_arrow = process_arrow_in_writeable;
     append_processing(process_arrow_func_list, general_arrow_process_funcs, list_element)
 
-    process_char_func_list list_element_char;
-    list_element_char.args = &args;
-    list_element_char.next = NULL;
-    list_element_char.process_char = process_char_in_writeable;
-    { append_processing(process_char_func_list, general_char_process_funcs, &list_element_char)}
-    read_process_keys(general_arrow_process_funcs,
-                      general_char_process_funcs,
-                      general_ctrl_process_funcs);
+    process_char_func_list *list_element_char = calloc(1, sizeof(process_char_func_list));
+    list_element_char->args = args;
+    list_element_char->next = NULL;
+    list_element_char->process_char = process_char_in_writeable;
+    append_processing(process_char_func_list, general_char_process_funcs, list_element_char)
+    //read process was here
+}
+
+struct tree_node
+{
+    union
+    {
+        struct directory_tree *open_dir;
+        string *closed_dir;
+    };
+    enum { CLOSED, OPEN } dir_state;
+};
+struct directory_tree
+{
+    array_voidp *dirs;
+    string_array files;
+    string name;
+};
+
+typedef enum
+{
+    DIRECTORY, FILE_C, FILE_H, FILE_DEFAULT, DEFAULT_TYPE
+} printable_file_type;
+
+struct filesystem_printable
+{
+    string_fast str;
+    uint depth;
+    printable_file_type type;
+};
+
+/*void directory_tree_to_str_arrays(struct directory_tree dir,
+                                  string_array *str_arr,
+                                  string_array *color_arr,
+                                  char *prefix,
+                                  uint depth,
+                                  struct filesystem_color_scheme color_scheme)
+{
+    void *current = dir.dirs->elements;
+    for (int i = 0; i < dir.dirs->size; i++, current++)
+    {
+        struct tree_node *current_struct = current;
+        if (current_struct->dir_state == OPEN)
+        {
+            directory_tree_to_str_arrays(*(struct directory_tree *)current_struct->open_dir,
+                                         str_arr,
+                                         color_arr,
+                                         prefix,
+                                         depth + 1,
+                                         color_scheme);
+        }
+        else
+        {
+            string *tree_leaf = current;
+            string result = string_create_new(strlen(prefix) * depth + tree_leaf->len);
+            for (int j = 0; j < depth; j++)
+            {
+                string_add_charp(&result, prefix);
+            }
+            string_add_string(&result, *tree_leaf);
+            string_array_push(str_arr, result);
+            string_array_push(color_arr, color_scheme.dir);
+        }
+    }
+}*/
+void directory_tree_to_printable(struct directory_tree dir, array_voidp *filesystem_printable_array_voidp, uint depth)
+{
+    void *current = dir.dirs->elements;
+
+    struct filesystem_printable open_printable = {dir.name, depth, DIRECTORY};
+    array_voidp_push(filesystem_printable_array_voidp, &open_printable);
+
+    for (int i = 0; i < dir.dirs->size; i++)
+    {
+        struct tree_node *current_struct = current;
+        if (current_struct->dir_state == OPEN)
+        {
+            directory_tree_to_printable(*current_struct->open_dir, filesystem_printable_array_voidp, depth + 1);
+        }
+        else
+        {
+            struct filesystem_printable
+                closed_printable = {string_fast_create_from_string(*current_struct->closed_dir), depth + 1, DIRECTORY};
+            array_voidp_push(filesystem_printable_array_voidp, &closed_printable);
+        }
+    }
+    for (int i = 0; i < dir.files.size; i++)
+    {
+        struct filesystem_printable
+            file_printable = {string_fast_create_from_string(dir.files.elements[i]), depth + 1, FILE_DEFAULT};
+        array_voidp_push(filesystem_printable_array_voidp, &file_printable);
+    }
+}
+
+void free_filesystem_printable_voidp(void *f_p)
+{
+    free_string_fast(((struct filesystem_printable *)f_p)->str);
+}
+
+void print_filesystem_segment(struct directory_tree dir,
+                              char print_name,
+                              struct filesystem_color_scheme color_scheme,
+                              urectangle screen_region,
+                              uint vertical_shift, uint horizontal_shift, char *prefix)
+{
+    if (print_name)
+    {
+        array_voidp filesystem_printable_arr = array_voidp_create(free_filesystem_printable_voidp);
+        directory_tree_to_printable(dir, &filesystem_printable_arr, 0);
+        //uint current_printed_line;
+        uint prefix_len = strlen(prefix);
+        uint segment_width = screen_region.col_end - screen_region.col_start;
+        terminal_goto(screen_region.row_start, screen_region.col_start)
+        for (uint i = vertical_shift;
+             i < vertical_shift + segment_width && i < filesystem_printable_arr.size;
+             i++)
+        {
+            uint j = segment_width + horizontal_shift;
+            for (uint d = ((struct filesystem_printable *)array_voidp_get_element(&filesystem_printable_arr, i))->depth;
+                 d--;)
+            {
+                //
+            }
+        }
+
+        free_array_voidp(&filesystem_printable_arr);
+    }
+    else
+    {
+        //TODO
+    }
+}
+
+void start_filesystem_segment(file_system_anchor anchor, urectangle screen_region)
+{
+
 }

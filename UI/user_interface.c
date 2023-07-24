@@ -39,11 +39,11 @@ void start_plaintext_editor_UI_regular(string *str)
     urectangle label_region = {2, 3, 5, 70};
     print_segment_plaintext_shifted("           [text name will be here]", label_region, 0);
 
-    process_ctrl_func_list list_element;
-    list_element.next = NULL;
-    list_element.args = NULL;
-    list_element.process_ctrl_char = ctrl_e_stop_input;
-    append_processing(process_ctrl_func_list, general_ctrl_process_funcs, &list_element)
+    process_ctrl_func_list *list_element = calloc(1, sizeof(process_ctrl_func_list));
+    list_element->next = NULL;
+    list_element->args = NULL;
+    list_element->process_ctrl_char = ctrl_e_stop_input;
+    append_processing(process_ctrl_func_list, general_ctrl_process_funcs, list_element)//TODO calloc
 
     urectangle instructions_region = {20, 22, 5, 70};
     print_segment_plaintext_shifted("ctrl+e - exit", instructions_region, 0);
@@ -51,6 +51,9 @@ void start_plaintext_editor_UI_regular(string *str)
     color_to_rgb_background(10, 10, 50);
     urectangle writeable_region = {3, 20, 5, 70};
     start_write_segment(str, writeable_region);
+    read_process_keys(general_arrow_process_funcs,
+                      general_char_process_funcs,
+                      general_ctrl_process_funcs);
     color_to_default();
 }
 //prototype

@@ -40,7 +40,7 @@ void read_process_key(process_arrow_func_list *process_arrow_funcs,
                       process_ctrl_func_list *process_ctrl_funcs)
 {
     char c;
-    if ((c = getchar()) > 27 || c == '\n' || c == '\b')
+    if ((c = getchar()) > 27 || c == '\n')
     {
         while (process_char_funcs != NULL)
         {

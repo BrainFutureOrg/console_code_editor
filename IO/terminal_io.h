@@ -49,9 +49,9 @@ struct process_ctrl_func_list
 };
 
 //global lists of key input processing functions
-extern process_arrow_func_list *general_arrow_process_funcs;
-extern process_char_func_list *general_char_process_funcs;
-extern process_ctrl_func_list *general_ctrl_process_funcs;
+extern process_arrow_func_list *general_arrow_process_funcs;//TODO free
+extern process_char_func_list *general_char_process_funcs;//TODO free
+extern process_ctrl_func_list *general_ctrl_process_funcs;//TODO free
 
 //append element to processing list of type
 #define append_processing(list_type, list_name, element_pointer) \

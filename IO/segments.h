@@ -19,4 +19,11 @@ void start_moving_readonly_segment(string str, urectangle screen_region);
 void start_write_segment(string *str, urectangle screen_region);
 void print_segment_plaintext_shifted(char *text, urectangle screen_region, uint text_start_col);
 
+typedef struct filesystem_color_scheme
+{
+    COLOR dir;
+    COLOR file;
+    COLOR default_color;
+};
+
 #endif //CONSOLE_CODE_EDITOR_SEGMENTS_H

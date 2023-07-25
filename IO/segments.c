@@ -535,6 +535,8 @@ void start_filesystem_segment(file_system_anchor anchor,
     args->str = string_create_from_fcharp("filesystem");
 
     registration_for_window_size_update(args, changer_function);
+
+    render_filesystem_segment(args);
     //END DUMMY CODE
 }
 

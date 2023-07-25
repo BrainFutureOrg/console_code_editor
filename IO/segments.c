@@ -6,6 +6,7 @@
 #include "terminal_io.h"
 #include "../file_system/file_system_work.h"
 #include "../prj_types/Array_type.h"
+#include "../signals_redefinition.h"
 
 #define DEL 127
 
@@ -106,7 +107,22 @@ struct move_readonly_params
     uint shift_col;
     string str;
     urectangle screen_region;
+    COLOR color;
 };
+
+void render_readonly_segment(void *args)
+{
+    struct move_readonly_params *args_struct = args;
+    printf("%s", args_struct->color.line);
+    char *line = args_struct->str.line;
+    uint newline_count = 0;
+    while (*line != '\0' && newline_count < args_struct->shift_row)
+    {
+        newline_count += *line++ == '\n';
+    }
+    print_segment_plaintext_shifted(line, args_struct->screen_region, args_struct->shift_col);
+    color_to_default();
+}
 
 //arrow processor for moving readonly segment: shifts text horizontally or vertically, then reprints segment
 void move_arrow(ARROW arrow, void *args)
@@ -128,36 +144,29 @@ void move_arrow(ARROW arrow, void *args)
             if (args_struct->shift_col > 0)
                 args_struct->shift_col--;
     }
-    char *line = args_struct->str.line;
-    uint newline_count = 0;
-    while (*line != '\0' && newline_count < args_struct->shift_row)
-    {
-        newline_count += *line++ == '\n';
-    }
-    print_segment_plaintext_shifted(line, args_struct->screen_region, args_struct->shift_col);
+    render_readonly_segment(args);
 }
 
 //initiates moving readonly segment: segment that allows shifting text inside horizontally and vertically
-void start_moving_readonly_segment(string str, urectangle screen_region)
+void start_moving_readonly_segment(string str,
+                                   urectangle screen_region,
+                                   void(*changer_function)(void *args, struct winsize new_size), COLOR color)
 {
-    //printf("STARTED THIS");
-    //terminal_erase_screen;
-    print_segment_plaintext_shifted(str.line, screen_region, 0);
-    //print_string_segment_primitive(str, color_create_background_rgb(200, 0, 0), screen_region);
+    //print_segment_plaintext_shifted(str.line, screen_region, 0);
     struct move_readonly_params *args = calloc(1, sizeof(struct move_readonly_params));
     args->shift_row = 0;
     args->shift_col = 0;
     args->screen_region = screen_region;
     args->str = str;
+    args->color = color;
     //TODO: add free for list of actions
     process_arrow_func_list *list_element = calloc(1, sizeof(process_arrow_func_list));
     list_element->process_arrow = move_arrow;
     list_element->next = NULL;
     list_element->args = args;
     append_processing(process_arrow_func_list, general_arrow_process_funcs, list_element)
-    read_process_keys(general_arrow_process_funcs,
-                      general_char_process_funcs,
-                      general_ctrl_process_funcs);
+    registration_for_window_size_update(args, changer_function);
+    render_readonly_segment(args);
 }
 
 //args for writeable segments char processing methods
@@ -169,7 +178,24 @@ struct write_segment_params
     uint str_col;
     string *str;
     urectangle screen_region;
+    COLOR color;
 };
+
+void render_writeable_segment(void *args)
+{
+    struct write_segment_params *args_struct = args;
+    printf("%s", args_struct->color.line);
+    char *line = args_struct->str->line;
+    uint newline_count = 0;
+    while (*line != '\0' && newline_count < args_struct->shift_row)
+    {
+        newline_count += *line++ == '\n';
+    }
+    print_segment_plaintext_shifted(line, args_struct->screen_region, args_struct->shift_col);
+    terminal_goto(args_struct->str_row - args_struct->shift_row + args_struct->screen_region.row_start,
+                  args_struct->str_col - args_struct->shift_col + args_struct->screen_region.col_start)
+    color_to_default();
+}
 
 //arrow processing method for writeable segment
 void process_arrow_in_writeable(ARROW arrow, void *args)
@@ -283,15 +309,7 @@ void process_arrow_in_writeable(ARROW arrow, void *args)
 
             }
     }
-    char *line = args_struct->str->line;
-    uint newline_count = 0;
-    while (*line != '\0' && newline_count < args_struct->shift_row)
-    {
-        newline_count += *line++ == '\n';
-    }
-    print_segment_plaintext_shifted(line, args_struct->screen_region, args_struct->shift_col);
-    terminal_goto(args_struct->str_row - args_struct->shift_row + args_struct->screen_region.row_start,
-                  args_struct->str_col - args_struct->shift_col + args_struct->screen_region.col_start)
+    render_writeable_segment(args);
 }
 
 //char processor for writeable segment
@@ -345,20 +363,17 @@ void process_char_in_writeable(char c, void *args)
         args_struct->str_col++;
     }
 
-    char *line = args_struct->str->line;
-    uint newline_count = 0;
-    while (*line != '\0' && newline_count < args_struct->shift_row)
-    {
-        newline_count += *line++ == '\n';
-    }
-    print_segment_plaintext_shifted(line, args_struct->screen_region, args_struct->shift_col);
+    render_writeable_segment(args);
 
-    terminal_goto(args_struct->str_row - args_struct->shift_row + args_struct->screen_region.row_start,
-                  args_struct->str_col - args_struct->shift_col + args_struct->screen_region.col_start)
+    //terminal_goto(args_struct->str_row - args_struct->shift_row + args_struct->screen_region.row_start,
+    //              args_struct->str_col - args_struct->shift_col + args_struct->screen_region.col_start)
 }
 
 //initiates writeable segment: segment which allows printing text in and which behaves like text editor when moving cursor
-void start_write_segment(string *str, urectangle screen_region)
+void start_write_segment(string *str,
+                         urectangle screen_region,
+                         void (*changer_function)(void *args, struct winsize w),
+                         COLOR color)
 {
     print_segment_plaintext_shifted(str->line, screen_region, 0);
     terminal_goto(screen_region.row_start, screen_region.col_start)
@@ -367,6 +382,8 @@ void start_write_segment(string *str, urectangle screen_region)
     args->str_row = args->str_col = args->shift_row = args->shift_col = 0;
     args->screen_region = screen_region;
     args->str = str;
+    args->color = color;
+
     process_arrow_func_list *list_element = calloc(1, sizeof(process_arrow_func_list));
     list_element->next = NULL;
     list_element->args = args;
@@ -378,9 +395,32 @@ void start_write_segment(string *str, urectangle screen_region)
     list_element_char->next = NULL;
     list_element_char->process_char = process_char_in_writeable;
     append_processing(process_char_func_list, general_char_process_funcs, list_element_char)
-    //read process was here
+
+    registration_for_window_size_update(args, changer_function);
+
+    render_writeable_segment(args);
 }
 
+struct filesystem_segment_params
+{
+    urectangle screen_region;
+    //TODO: REPLACE WITH ACTUAL CODE!
+    //DUMMY CODE
+    string str;
+    COLOR color;
+    //END DUMMY CODE
+};
+
+void render_filesystem_segment(void *args)
+{
+    //TODO: REPLACE WITH ACTUAL CODE!
+    //DUMMY CODE
+    struct filesystem_segment_params *args_struct = args;
+    printf("%s", args_struct->color.line);
+    print_segment_plaintext_shifted(args_struct->str.line, args_struct->screen_region, 0);
+    color_to_default();
+    //END DUMMY CODE
+}
 struct tree_node
 {
     union
@@ -409,40 +449,6 @@ struct filesystem_printable
     printable_file_type type;
 };
 
-/*void directory_tree_to_str_arrays(struct directory_tree dir,
-                                  string_array *str_arr,
-                                  string_array *color_arr,
-                                  char *prefix,
-                                  uint depth,
-                                  struct filesystem_color_scheme color_scheme)
-{
-    void *current = dir.dirs->elements;
-    for (int i = 0; i < dir.dirs->size; i++, current++)
-    {
-        struct tree_node *current_struct = current;
-        if (current_struct->dir_state == OPEN)
-        {
-            directory_tree_to_str_arrays(*(struct directory_tree *)current_struct->open_dir,
-                                         str_arr,
-                                         color_arr,
-                                         prefix,
-                                         depth + 1,
-                                         color_scheme);
-        }
-        else
-        {
-            string *tree_leaf = current;
-            string result = string_create_new(strlen(prefix) * depth + tree_leaf->len);
-            for (int j = 0; j < depth; j++)
-            {
-                string_add_charp(&result, prefix);
-            }
-            string_add_string(&result, *tree_leaf);
-            string_array_push(str_arr, result);
-            string_array_push(color_arr, color_scheme.dir);
-        }
-    }
-}*/
 void directory_tree_to_printable(struct directory_tree dir, array_voidp *filesystem_printable_array_voidp, uint depth)
 {
     void *current = dir.dirs->elements;
@@ -497,9 +503,15 @@ void print_filesystem_segment(struct directory_tree dir,
         {
             uint j = segment_width + horizontal_shift;
             for (uint d = ((struct filesystem_printable *)array_voidp_get_element(&filesystem_printable_arr, i))->depth;
-                 d--;)
+                 d-- && j;)
             {
-                //
+                for (uint c = prefix_len; c && j; c--, j--)
+                {
+                    if (j <= segment_width)
+                        putchar(prefix[c]);
+                }
+                //TODO: uncomment after compile run and finish!
+                //for(uint c= ((struct filesystem_printable*)array_voidp_get_element(&filesystem_printable_arr,i))->str.last_element)
             }
         }
 
@@ -507,11 +519,50 @@ void print_filesystem_segment(struct directory_tree dir,
     }
     else
     {
-        //TODO
+        //TODO finish!
     }
 }
 
-void start_filesystem_segment(file_system_anchor anchor, urectangle screen_region)
+void start_filesystem_segment(file_system_anchor anchor,
+                              urectangle screen_region,
+                              void (*changer_function)(void *element, struct winsize w))
 {
+    //TODO: REPLACE WITH ACTUAL CODE!
+    //DUMMY CODE
+    struct filesystem_segment_params *args = calloc(1, sizeof(struct filesystem_segment_params));
+    args->screen_region = screen_region;
+    args->color = color_create_background_rgb(50, 10, 50);
+    args->str = string_create_from_fcharp("filesystem");
 
+    registration_for_window_size_update(args, changer_function);
+    //END DUMMY CODE
+}
+
+struct static_params
+{
+    string str;
+    urectangle screen_region;
+    COLOR color;
+};
+
+void render_static_segment(void *args)
+{
+    struct static_params *args_struct = args;
+    printf("%s", args_struct->color.line);
+    print_segment_plaintext_shifted(args_struct->str.line, args_struct->screen_region, 0);
+    color_to_default();
+}
+
+void start_static_segment(string str,
+                          COLOR color,
+                          urectangle screen_region,
+                          void (*changer_function)(void *element, struct winsize w))
+{
+    struct static_params *args = calloc(1, sizeof(struct static_params));
+    args->color = color;
+    args->screen_region = screen_region;
+    args->str = str;
+
+    registration_for_window_size_update(args, changer_function);
+    render_static_segment(args);
 }

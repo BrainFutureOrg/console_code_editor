@@ -9,17 +9,17 @@
 
 void tests();
 
-void moving_text_prototype()
-{
-    terminal_erase_screen;
-    color_to_rgb_background(0, 0, 50);
-    string text = string_create_from_fcharp("");
-    urectangle region = {5, 15, 5, 50};
-    //start_moving_readonly_segment(text, region);
-    start_write_segment(&text, region);
-    free_string(text);
-    color_to_default();
-}
+//void moving_text_prototype()
+//{
+//    terminal_erase_screen;
+//    color_to_rgb_background(0, 0, 50);
+//    string text = string_create_from_fcharp("");
+//    urectangle region = {5, 15, 5, 50};
+//    //start_moving_readonly_segment(text, region);
+//    start_write_segment(&text, region);
+//    free_string(text);
+//    color_to_default();
+//}
 
 void UIprototype()
 {

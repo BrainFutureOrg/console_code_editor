@@ -51,18 +51,33 @@ void ctrl_e_stop_input(char c, void *args)
 #define vert_size_instruction 3
 #define vert_size_file_name   2
 
-#define min_hor_size_filesystem 20
+#define min_hor_size_filesystem 100
 
-#define min_vert_size_instruction  50
-#define min_vert_size_file_name    50
+#define min_vert_size_instruction  30
+#define min_vert_size_file_name    30
 
 void changer_window_function_filesystem(void *element, struct winsize w)
 {
     urectangle new_size;
-    new_size.col_start = 0 + 1;
-    new_size.row_start = 0 + 1;
-    new_size.col_end = (uint)(w.ws_col * hor_size_percent_filesystem) + 1;
-    new_size.row_end = w.ws_row - vert_size_instruction + 1;
+    if (w.ws_col > min_hor_size_filesystem)
+    {
+        new_size.col_start = 0 + 1;
+        new_size.row_start = 0 + 1;
+        new_size.col_end = (uint)(w.ws_col * hor_size_percent_filesystem) + 1;
+        if(w.ws_row > min_vert_size_instruction)
+        {
+            new_size.row_end = w.ws_row - vert_size_instruction + 1;
+        }
+        else
+        {
+            new_size.row_end = w.ws_row + 1
+        }
+
+    }
+    else
+    {
+        new_size.row_end = new_size.col_end = new_size.row_start = new_size.col_start = 1;
+    }
 
     ((changer_filesystem_type *)element)->screen_region = new_size;
     changer_filesystem_render_func(element);
@@ -71,10 +86,24 @@ void changer_window_function_filesystem(void *element, struct winsize w)
 void changer_window_function_file_name(void *element, struct winsize w)
 {
     urectangle new_size;
-    new_size.col_start = (uint)(w.ws_col * hor_size_percent_filesystem) + 1;
-    new_size.row_start = 0 + 1;
-    new_size.col_end = w.ws_col + 1;
-    new_size.row_end = vert_size_file_name + 1;
+    if (w.ws_row > min_vert_size_file_name)
+    {
+        if (w.ws_col > min_hor_size_filesystem)
+        {
+            new_size.col_start = (uint)(w.ws_col * hor_size_percent_filesystem) + 1;
+        }
+        else
+        {
+            new_size.col_start = 0 + 1;
+        }
+        new_size.row_start = 0 + 1;
+        new_size.col_end = w.ws_col + 1;
+        new_size.row_end = vert_size_file_name + 1;
+    }
+    else
+    {
+        new_size.row_end = new_size.col_end = new_size.row_start = new_size.col_start = 1;
+    }
 
     ((changer_file_name_type *)element)->screen_region = new_size;
     changer_file_name_render_func(element);
@@ -83,10 +112,18 @@ void changer_window_function_file_name(void *element, struct winsize w)
 void changer_window_function_instructions(void *element, struct winsize w)
 {
     urectangle new_size;
-    new_size.col_start = 0 + 1;
-    new_size.row_start = w.ws_row - vert_size_instruction + 1;
-    new_size.col_end = w.ws_col + 1;
-    new_size.row_end = w.ws_row + 1;
+    if (w.ws_row > min_vert_size_instruction)
+    {
+        new_size.col_start = 0 + 1;
+
+        new_size.row_start = w.ws_row - vert_size_instruction + 1;
+        new_size.col_end = w.ws_col + 1;
+        new_size.row_end = w.ws_row + 1;
+    }
+    else
+    {
+        new_size.row_end = new_size.col_end = new_size.row_start = new_size.col_start = 1;
+    }
 
     ((changer_instructions_type *)element)->screen_region = new_size;
     changer_instructions_render_func(element);
@@ -95,10 +132,34 @@ void changer_window_function_instructions(void *element, struct winsize w)
 void changer_window_function_writeable(void *element, struct winsize w)
 {
     urectangle new_size;
-    new_size.col_start = (uint)(w.ws_col * hor_size_percent_filesystem) + 1;
-    new_size.row_start = vert_size_file_name + 1;
+
+    if (w.ws_col > min_hor_size_filesystem)
+    {
+        new_size.col_start = (uint)(w.ws_col * hor_size_percent_filesystem) + 1;
+    }
+    else
+    {
+        new_size.col_start = 0 + 1;
+    }
+
+    if (w.ws_row > min_vert_size_file_name)
+    {
+        new_size.row_start = vert_size_file_name + 1;
+    }
+    else
+    {
+        new_size.row_start = 0 + 1;
+    }
     new_size.col_end = w.ws_col + 1;
-    new_size.row_end = w.ws_row - vert_size_instruction + 1;
+
+    if (w.ws_row > min_vert_size_instruction)
+    {
+        new_size.row_end = w.ws_row - vert_size_instruction + 1;
+    }
+    else
+    {
+        new_size.row_end = w.ws_row + 1;
+    }
 
     ((changer_writeable_type *)element)->screen_region = new_size;
     changer_writeable_render_func(element);

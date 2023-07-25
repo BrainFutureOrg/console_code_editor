@@ -100,16 +100,6 @@ void print_segment_plaintext_shifted(char *text, urectangle screen_region, uint 
     }
 }
 
-//arg for moving readonly segment
-struct move_readonly_params
-{
-    uint shift_row;
-    uint shift_col;
-    string str;
-    urectangle screen_region;
-    COLOR color;
-};
-
 void render_readonly_segment(void *args)
 {
     struct move_readonly_params *args_struct = args;
@@ -168,18 +158,6 @@ void start_moving_readonly_segment(string str,
     registration_for_window_size_update(args, changer_function);
     render_readonly_segment(args);
 }
-
-//args for writeable segments char processing methods
-struct write_segment_params
-{
-    uint shift_row;
-    uint shift_col;
-    uint str_row;
-    uint str_col;
-    string *str;
-    urectangle screen_region;
-    COLOR color;
-};
 
 void render_writeable_segment(void *args)
 {
@@ -401,16 +379,6 @@ void start_write_segment(string *str,
     render_writeable_segment(args);
 }
 
-struct filesystem_segment_params
-{
-    urectangle screen_region;
-    //TODO: REPLACE WITH ACTUAL CODE!
-    //DUMMY CODE
-    string str;
-    COLOR color;
-    //END DUMMY CODE
-};
-
 void render_filesystem_segment(void *args)
 {
     //TODO: REPLACE WITH ACTUAL CODE!
@@ -539,13 +507,6 @@ void start_filesystem_segment(file_system_anchor anchor,
     render_filesystem_segment(args);
     //END DUMMY CODE
 }
-
-struct static_params
-{
-    string str;
-    urectangle screen_region;
-    COLOR color;
-};
 
 void render_static_segment(void *args)
 {

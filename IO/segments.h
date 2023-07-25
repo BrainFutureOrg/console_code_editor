@@ -16,20 +16,54 @@ typedef struct urectangle
 {
     uint row_start, row_end, col_start, col_end;
 } urectangle;
+
+struct move_readonly_params
+{
+    uint shift_row;
+    uint shift_col;
+    string str;
+    urectangle screen_region;
+    COLOR color;
+};
 void render_readonly_segment(void *args);
 void start_moving_readonly_segment(string str,
                                    urectangle screen_region,
                                    void (*changer_function)(void *element, struct winsize w), COLOR color);
 
+struct write_segment_params
+{
+    uint shift_row;
+    uint shift_col;
+    uint str_row;
+    uint str_col;
+    string *str;
+    urectangle screen_region;
+    COLOR color;
+};
 void render_writeable_segment(void *args);
 void start_write_segment(string *str, urectangle screen_region,
                          void (*changer_function)(void *element, struct winsize w), COLOR color);
 
+struct filesystem_segment_params
+{
+    urectangle screen_region;
+    //TODO: REPLACE WITH ACTUAL CODE!
+    //DUMMY CODE
+    string str;
+    COLOR color;
+    //END DUMMY CODE
+};
 void render_filesystem_segment(void *args);
 void start_filesystem_segment(file_system_anchor anchor,
                               urectangle screen_region,
                               void (*changer_function)(void *element, struct winsize w));
 
+struct static_params
+{
+    string str;
+    urectangle screen_region;
+    COLOR color;
+};
 void render_static_segment(void *args);
 void start_static_segment(string str,
                           COLOR color,

@@ -7,6 +7,7 @@
 #include "../colors.h"
 #include "../IO/segments.h"
 #include "../IO/terminal_io.h"
+#include <sys/ioctl.h>
 
 void print_logo()
 {
@@ -29,7 +30,10 @@ void ctrl_e_stop_input(char c, void *args)
         terminal_goto(1, 1)
     }
 }
+void changer_function_empty(void *element, struct winsize w)
+{
 
+}
 void start_plaintext_editor_UI_regular(string *str)
 {
     terminal_erase_screen;
@@ -50,7 +54,7 @@ void start_plaintext_editor_UI_regular(string *str)
 
     color_to_rgb_background(10, 10, 50);
     urectangle writeable_region = {3, 20, 5, 70};
-    start_write_segment(str, writeable_region);
+    start_write_segment(str, writeable_region, changer_function_empty);
     read_process_keys(general_arrow_process_funcs,
                       general_char_process_funcs,
                       general_ctrl_process_funcs);

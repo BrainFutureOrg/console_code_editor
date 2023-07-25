@@ -51,7 +51,7 @@ void is_window_changed(int signal)
         }
 void end_program(int signal)
 {
-    free_process_functions(process_arrow_func_list, general_char_process_funcs)
+    free_process_functions(process_arrow_func_list, general_arrow_process_funcs)
     free_process_functions(process_char_func_list, general_char_process_funcs)
     free_process_functions(process_ctrl_func_list, general_ctrl_process_funcs)
     exit(0);

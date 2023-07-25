@@ -32,7 +32,7 @@ void print_error()
             color_from_parts_printf(BOLD | FOREGROUND_RED, "ERROR: path problem\n");
             break;
         default:
-            color_from_parts_printf(BOLD | FOREGROUND_RED, "ERROR\n");
+            color_from_parts_printf(BOLD | FOREGROUND_RED, "ERROR %d %s\n", errno, strerror(errno));
             break;
     }
 }

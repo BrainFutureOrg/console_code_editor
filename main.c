@@ -6,6 +6,9 @@
 #include "IO/segments.h"
 #include "IO/terminal_io.h"
 #include "test/test_functionality_of_new_functions.h"
+#include "loging/log.h"
+#include "signals_redefinition.h"
+#include "prj_error.h"
 
 void tests();
 
@@ -30,6 +33,9 @@ void UIprototype()
 
 int main(int argc, char **argv)
 {
+    init_logger(DEBUG, "log.txt");
+    write_log(INFO, "Program start");
+    redefine_signals();
     print_logo();
     tests();
 
@@ -44,8 +50,10 @@ int main(int argc, char **argv)
 
     if (errno)
     {
+        print_error();
         printf("Fuck!\n");
     }
+    write_log(INFO, "Program end");
     return 0;
 }
 

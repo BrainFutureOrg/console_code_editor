@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include "signals_redefinition.h"
 #include "IO/terminal_io.h"
+#include "loging/log.h"
 #include <signal.h>
 #include <stdlib.h>
 
@@ -32,9 +33,12 @@ void is_window_changed(int signal)
     struct winsize w;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
 
+    write_log(DEBUG, "window_changed, rows: %d, columns: %d", w.ws_row, w.ws_col);
+
     struct change_window_size_registrator *cwsr = main_change_window_size_registrator;
     while (cwsr != NULL)
     {
+        write_log(DEBUG, "window_changed, registrator caused");
         cwsr->changer_function(cwsr->element, w);
         cwsr = cwsr->next;
     }

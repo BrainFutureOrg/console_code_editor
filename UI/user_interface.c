@@ -8,6 +8,7 @@
 #include "../IO/segments.h"
 #include "../IO/terminal_io.h"
 #include <sys/ioctl.h>
+#include <signal.h>
 #include "../file_system/file_system_work.h"
 
 void print_logo()
@@ -31,6 +32,78 @@ void ctrl_e_stop_input(char c, void *args)
         terminal_goto(1, 1)
     }
 }
+
+#define changer_filesystem_type   struct filesystem_segment_params
+#define changer_file_name_type    struct static_params
+#define changer_instructions_type struct static_params
+#define changer_writeable_type    struct write_segment_params
+
+#define changer_filesystem_render_func   render_filesystem_segment
+#define changer_file_name_render_func    render_static_segment
+#define changer_instructions_render_func render_static_segment
+#define changer_writeable_render_func    render_writeable_segment
+
+#define hor_size_percent_filesystem  0.2
+#define hor_size_percent_writeable   (1 - size_percent_filesystem)
+#define hor_size_percent_instruction 1
+#define hor_size_percent_file_name   1
+
+#define vert_size_instruction 3
+#define vert_size_file_name   2
+
+#define min_hor_size_filesystem 20
+
+#define min_vert_size_instruction  50
+#define min_vert_size_file_name    50
+
+void changer_window_function_filesystem(void *element, struct winsize w)
+{
+    urectangle new_size;
+    new_size.col_start = 0 + 1;
+    new_size.row_start = 0 + 1;
+    new_size.col_end = (uint)(w.ws_col * hor_size_percent_filesystem) + 1;
+    new_size.row_end = w.ws_row - vert_size_instruction + 1;
+
+    ((changer_filesystem_type *)element)->screen_region = new_size;
+    changer_filesystem_render_func(element);
+}
+
+void changer_window_function_file_name(void *element, struct winsize w)
+{
+    urectangle new_size;
+    new_size.col_start = (uint)(w.ws_col * hor_size_percent_filesystem) + 1;
+    new_size.row_start = 0 + 1;
+    new_size.col_end = w.ws_col + 1;
+    new_size.row_end = vert_size_file_name + 1;
+
+    ((changer_file_name_type *)element)->screen_region = new_size;
+    changer_file_name_render_func(element);
+}
+
+void changer_window_function_instructions(void *element, struct winsize w)
+{
+    urectangle new_size;
+    new_size.col_start = 0 + 1;
+    new_size.row_start = w.ws_row - vert_size_instruction + 1;
+    new_size.col_end = w.ws_col + 1;
+    new_size.row_end = w.ws_row + 1;
+
+    ((changer_instructions_type *)element)->screen_region = new_size;
+    changer_instructions_render_func(element);
+}
+
+void changer_window_function_writeable(void *element, struct winsize w)
+{
+    urectangle new_size;
+    new_size.col_start = (uint)(w.ws_col * hor_size_percent_filesystem) + 1;
+    new_size.row_start = vert_size_file_name + 1;
+    new_size.col_end = w.ws_col + 1;
+    new_size.row_end = w.ws_row - vert_size_instruction + 1;
+
+    ((changer_writeable_type *)element)->screen_region = new_size;
+    changer_writeable_render_func(element);
+}
+
 void changer_function_empty(void *element, struct winsize w)
 {
 
@@ -42,7 +115,10 @@ void start_plaintext_editor_UI_regular(string *str)
     COLOR label_color = color_create_background_rgb(15, 15, 70);//TODO: free
     urectangle label_region = {2, 3, 20, 70};//TODO:free
     string label_str = string_create_from_fcharp("[text name will be here]");
-    start_static_segment(label_str, label_color, label_region, changer_function_empty);//TODO: for Maximus: finish
+    start_static_segment(label_str,
+                         label_color,
+                         label_region,
+                         changer_window_function_file_name);//TODO: for Maximus: finish
 
     process_ctrl_func_list *list_element = calloc(1, sizeof(process_ctrl_func_list));
     list_element->next = NULL;
@@ -56,17 +132,20 @@ void start_plaintext_editor_UI_regular(string *str)
     start_static_segment(instructions_str,
                          instructions_color,
                          instructions_region,
-                         changer_function_empty);//TODO: for Maximus: finish
+                         changer_window_function_instructions);//TODO: for Maximus: finish
 
     COLOR writeable_color = color_create_background_rgb(10, 10, 50);
     urectangle writeable_region = {3, 20, 20, 70};
-    start_write_segment(str, writeable_region, changer_function_empty, writeable_color); //TODO: for Maximus: finish
+    start_write_segment(str,
+                        writeable_region,
+                        changer_window_function_writeable,
+                        writeable_color); //TODO: for Maximus: finish
 
     urectangle filesystem_region = {2, 20, 5, 20};
     start_filesystem_segment(system_anchor_init(),
                              filesystem_region,
-                             changer_function_empty);//TODO: for Maximus: finish
-
+                             changer_window_function_filesystem);//TODO: for Maximus: finish
+    raise(SIGWINCH);
     read_process_keys(general_arrow_process_funcs,
                       general_char_process_funcs,
                       general_ctrl_process_funcs);

@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include "../file_system/file_system_work.h"
 #include <sys/ioctl.h>
+#include "../prj_types/Array_type.h"
 
 #ifndef CONSOLE_CODE_EDITOR_SEGMENTS_H
 #define CONSOLE_CODE_EDITOR_SEGMENTS_H
@@ -16,6 +17,13 @@ typedef struct urectangle
 {
     uint row_start, row_end, col_start, col_end;
 } urectangle;
+
+typedef struct
+{
+    COLOR dir;
+    COLOR file;
+    COLOR default_color;
+} filesystem_color_scheme;
 
 struct move_readonly_params
 {
@@ -44,19 +52,27 @@ void render_writeable_segment(void *args);
 void start_write_segment(string *str, urectangle screen_region,
                          void (*changer_function)(void *element, struct winsize w), COLOR color);
 
+struct directory_tree
+{
+    array_voidp dirs;
+    string_array files;
+    string name;
+};
 struct filesystem_segment_params
 {
     urectangle screen_region;
-    //TODO: REPLACE WITH ACTUAL CODE!
-    //DUMMY CODE
-    string str;
-    COLOR color;
-    //END DUMMY CODE
+    filesystem_color_scheme color_scheme;
+    uint vertical_shift, horizontal_shift, cursor;
+    char *prefix, print_name;
+    file_system_anchor current_outermost_dir;
+    struct directory_tree dir;
 };
 void render_filesystem_segment(void *args);
 void start_filesystem_segment(file_system_anchor anchor,
                               urectangle screen_region,
-                              void (*changer_function)(void *element, struct winsize w));
+                              void (*changer_function)(void *element, struct winsize w),
+                              filesystem_color_scheme color_scheme,
+                              char *prefix);
 
 struct static_params
 {
@@ -69,12 +85,5 @@ void start_static_segment(string str,
                           COLOR color,
                           urectangle screen_region,
                           void (*changer_function)(void *element, struct winsize w));
-
-typedef struct filesystem_color_scheme
-{
-    COLOR dir;
-    COLOR file;
-    COLOR default_color;
-};
 
 #endif //CONSOLE_CODE_EDITOR_SEGMENTS_H

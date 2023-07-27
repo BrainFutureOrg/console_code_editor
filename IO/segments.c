@@ -379,16 +379,6 @@ void start_write_segment(string *str,
     render_writeable_segment(args);
 }
 
-void render_filesystem_segment(void *args)
-{
-    //TODO: REPLACE WITH ACTUAL CODE!
-    //DUMMY CODE
-    struct filesystem_segment_params *args_struct = args;
-    printf("%s", args_struct->color.line);
-    print_segment_plaintext_shifted(args_struct->str.line, args_struct->screen_region, 0);
-    color_to_default();
-    //END DUMMY CODE
-}
 struct tree_node
 {
     union
@@ -397,12 +387,6 @@ struct tree_node
         string *closed_dir;
     };
     enum { CLOSED, OPEN } dir_state;
-};
-struct directory_tree
-{
-    array_voidp *dirs;
-    string_array files;
-    string name;
 };
 
 typedef enum
@@ -419,14 +403,14 @@ struct filesystem_printable
 
 void directory_tree_to_printable(struct directory_tree dir, array_voidp *filesystem_printable_array_voidp, uint depth)
 {
-    void *current = dir.dirs->elements;
+    void *current = dir.dirs.elements;
 
     struct filesystem_printable open_printable = {dir.name, depth, DIRECTORY};
     array_voidp_push(filesystem_printable_array_voidp, &open_printable);
 
-    for (int i = 0; i < dir.dirs->size; i++)
+    for (int i = 0; i < dir.dirs.size; i++)
     {
-        struct tree_node *current_struct = current;
+        struct tree_node *current_struct = current++;
         if (current_struct->dir_state == OPEN)
         {
             directory_tree_to_printable(*current_struct->open_dir, filesystem_printable_array_voidp, depth + 1);
@@ -446,66 +430,231 @@ void directory_tree_to_printable(struct directory_tree dir, array_voidp *filesys
     }
 }
 
+uint directory_tree_count(struct directory_tree dir)
+{
+    void *current = dir.dirs.elements;
+    uint result = 1;
+    for (int i = 0; i < dir.dirs.size; i++)
+    {
+        struct tree_node *current_struct = current++;
+        if (current_struct->dir_state == OPEN)
+        {
+            result += directory_tree_count(*current_struct->open_dir);
+        }
+        else
+        {
+            result++;
+        }
+    }
+    return result + dir.files.size;
+}
+
 void free_filesystem_printable_voidp(void *f_p)
 {
     free_string_fast(((struct filesystem_printable *)f_p)->str);
 }
 
-void print_filesystem_segment(struct directory_tree dir,
-                              char print_name,
-                              struct filesystem_color_scheme color_scheme,
-                              urectangle screen_region,
-                              uint vertical_shift, uint horizontal_shift, char *prefix)
+void print_filesystem_segment(array_voidp filesystem_printable_arr,
+                              struct filesystem_segment_params params)
 {
-    if (print_name)
+    //array_voidp filesystem_printable_arr = array_voidp_create(free_filesystem_printable_voidp);
+    //directory_tree_to_printable(dir, &filesystem_printable_arr, 0);
+    //uint current_printed_line;
+    uint prefix_len = strlen(params.prefix);
+    uint segment_width = params.screen_region.col_end - params.screen_region.col_start;
+    terminal_goto(params.screen_region.row_start, params.screen_region.col_start)
+    //if (print_name)
+    //{
+    for (uint i = params.vertical_shift + !params.print_name;
+         i < params.vertical_shift + segment_width + !params.print_name && i < filesystem_printable_arr.size;
+         i++)
     {
-        array_voidp filesystem_printable_arr = array_voidp_create(free_filesystem_printable_voidp);
-        directory_tree_to_printable(dir, &filesystem_printable_arr, 0);
-        //uint current_printed_line;
-        uint prefix_len = strlen(prefix);
-        uint segment_width = screen_region.col_end - screen_region.col_start;
-        terminal_goto(screen_region.row_start, screen_region.col_start)
-        for (uint i = vertical_shift;
-             i < vertical_shift + segment_width && i < filesystem_printable_arr.size;
-             i++)
+        switch (((struct filesystem_printable *)filesystem_printable_arr.elements[i])->type)
         {
-            uint j = segment_width + horizontal_shift;
-            for (uint d = ((struct filesystem_printable *)array_voidp_get_element(&filesystem_printable_arr, i))->depth;
-                 d-- && j;)
+            case DIRECTORY:
+                printf("%s", params.color_scheme.dir.line);
+                break;
+            case FILE_DEFAULT:
+            case FILE_C:
+            case FILE_H:
+                printf("%s", params.color_scheme.file.line);
+                break;
+            default:
+                printf("%s", params.color_scheme.default_color.line);
+        }
+        if (i == params.cursor)
+        {
+            color_inverse();
+        }
+        uint j = segment_width + params.horizontal_shift;
+        for (uint d =
+            ((struct filesystem_printable *)array_voidp_get_element(&filesystem_printable_arr, i))->depth
+                - !params.print_name;
+             d-- && j;)
+        {
+            for (uint c = prefix_len; c && j; c--, j--)
             {
-                for (uint c = prefix_len; c && j; c--, j--)
-                {
-                    if (j <= segment_width)
-                        putchar(prefix[c]);
-                }
-                //TODO: uncomment after compile run and finish!
-                //for(uint c= ((struct filesystem_printable*)array_voidp_get_element(&filesystem_printable_arr,i))->str.last_element)
+                if (j <= segment_width)
+                    putchar(params.prefix[c]);
+            }
+            char *line = ((struct filesystem_printable *)array_voidp_get_element(&filesystem_printable_arr, i))->str
+                .string_part.line;
+            while (j)
+            {
+                putchar(*line++);
+                j--;
             }
         }
+    }
 
-        free_array_voidp(&filesystem_printable_arr);
-    }
-    else
+    free_array_voidp(&filesystem_printable_arr);
+    //}
+    //else
+    //{
+    //No.
+    //}
+}
+
+void render_filesystem_segment(void *args)
+{
+    struct filesystem_segment_params *args_struct = args;
+    array_voidp filesystem_printable_arr = array_voidp_create(free_filesystem_printable_voidp);
+    directory_tree_to_printable(args_struct->dir, &filesystem_printable_arr, 0);
+    print_filesystem_segment(filesystem_printable_arr, *args_struct);
+    free_array_voidp(&filesystem_printable_arr);
+}
+
+void process_arrow_filesystem(ARROW arrow, void *args)
+{
+    struct filesystem_segment_params *args_struct = args;
+    switch (arrow)
     {
-        //TODO finish!
+        case UP:
+            if (args_struct->cursor > !args_struct->print_name)
+            {
+                args_struct->cursor--;
+                if (args_struct->cursor < args_struct->vertical_shift)
+                {
+                    args_struct->vertical_shift = args_struct->cursor;
+                }
+            }
+            break;
+        case DOWN:
+            if (args_struct->cursor < directory_tree_count(args_struct->dir) - !args_struct->print_name)
+            {
+                args_struct->cursor++;
+                if (args_struct->cursor > args_struct->vertical_shift + args_struct->screen_region.col_end
+                    - args_struct->screen_region.col_start)
+                {
+                    args_struct->vertical_shift =
+                        args_struct->cursor - args_struct->screen_region.col_end + args_struct->screen_region.col_start;
+                }
+            }
+            break;
+        case RIGHT:
+            args_struct->horizontal_shift++;
+            break;
+        case LEFT:
+            if (args_struct->horizontal_shift)
+                args_struct->horizontal_shift--;
     }
+    render_filesystem_segment(args);
+}
+
+char enter_cursor_recursive(file_system_anchor *anchor_to_change,
+                            struct directory_tree *dir_to_change,
+                            uint cursor, uint depth)
+{
+    depth++;
+    for (int i = 0; i < dir_to_change->dirs.size; i++)
+    {
+        //struct tree_node* node=dir_to_change->dirs.
+    }
+}
+
+void process_char_filesystem(char c, void *args)
+{
+    struct filesystem_segment_params *args_struct = args;
+    if (c == '\n')
+    {
+        if (args_struct->cursor)
+        {
+            for (int i = 0; i < args_struct->dir.dirs.size; i++)
+            {
+                if (((struct tree_node *)args_struct->dir.dirs.elements[i])->dir_state == OPEN)
+                {
+
+                }
+            }
+        }
+    }
+    if (c == 'o' || c == 'O')
+    {
+
+    }
+    if (c == 'm' || c == 'M')
+    {
+
+    }
+    if (c == 'b' || c == 'B')
+    {
+
+    }
+}
+
+void free_directory_tree_voidp(void *dir)
+{
+    struct directory_tree *dir_struct = dir;
+    free_array_voidp(&(dir_struct->dirs));
+    free_string_array(&dir_struct->files);
+    free_string(dir_struct->name);
 }
 
 void start_filesystem_segment(file_system_anchor anchor,
                               urectangle screen_region,
-                              void (*changer_function)(void *element, struct winsize w))
+                              void (*changer_function)(void *element, struct winsize w),
+                              filesystem_color_scheme color_scheme,
+                              char *prefix)
 {
-    //TODO: REPLACE WITH ACTUAL CODE!
-    //DUMMY CODE
     struct filesystem_segment_params *args = calloc(1, sizeof(struct filesystem_segment_params));
     args->screen_region = screen_region;
-    args->color = color_create_background_rgb(50, 10, 50);
-    args->str = string_create_from_fcharp("filesystem");
+    args->color_scheme = color_scheme;
+    args->vertical_shift = 0;
+    args->horizontal_shift = 0;
+    args->cursor = 0;
+    args->print_name = 1;
+    args->current_outermost_dir = anchor;
+    args->dir.dirs = array_voidp_create(free_directory_tree_voidp);
+    args->dir.files = string_array_create();
+    args->prefix = prefix;
+    files_dirs_from_directory content = system_anchor_get_dir_content(anchor);
+    for (int i = 0; i < content.dirs.size; i++)
+    {
+        struct tree_node *node = calloc(1, sizeof(struct tree_node));
+        node->dir_state = CLOSED;
+        node->closed_dir = &content.dirs.elements[i];
+        array_voidp_push(&args->dir.dirs, node);
+    }
+    for (int i = 0; i < content.files.size; i++)
+    {
+        string_array_push(&args->dir.files, content.files.elements[i]);
+    }
+
+    process_arrow_func_list *list_element = calloc(1, sizeof(process_arrow_func_list));
+    list_element->next = NULL;
+    list_element->args = args;
+    list_element->process_arrow = process_arrow_filesystem;
+    append_processing(process_arrow_func_list, general_arrow_process_funcs, list_element)
+
+    process_char_func_list *list_element_char = calloc(1, sizeof(process_char_func_list));
+    list_element_char->args = args;
+    list_element_char->next = NULL;
+    list_element_char->process_char = process_char_filesystem;
+    //append_processing(process_char_func_list, general_char_process_funcs, list_element_char)
 
     registration_for_window_size_update(args, changer_function);
 
     render_filesystem_segment(args);
-    //END DUMMY CODE
 }
 
 void render_static_segment(void *args)

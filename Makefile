@@ -4,3 +4,6 @@ compile:
 compile_run:
 	make compile
 	./main
+
+run_in_terminal:
+	gnome-terminal --command="make compile_run" &

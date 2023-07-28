@@ -98,7 +98,7 @@ string_fast string_fast_create_new(uint len)
 
 string_fast string_fast_create_from_string(string initial)
 {
-    string_fast result = {initial, 0};
+    string_fast result = {string_copy(initial), 0};
     result.last_element = strlen(initial.line);
     return result;
 }

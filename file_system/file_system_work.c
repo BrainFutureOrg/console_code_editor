@@ -42,6 +42,7 @@ files_dirs_from_directory system_anchor_get_dir_content(file_system_anchor ancho
     }
     // Close the directory.
     closedir(directory);
+    return result;
 }
 
 file_system_anchor system_anchor_init()

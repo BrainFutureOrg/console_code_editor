@@ -55,30 +55,6 @@ void test_console_games_functions(int sleep_time)
     free_string(file_text);
 }
 
-void test_urectangle_region_functionality()
-{
-    string file_text = read_file("example.txt");
-    printf("%s", file_text.line);
-
-    printf("\033[H\033[J");//clear
-    //printf("%s", file_text.line);
-    //string str= string_create_from_fcharp("aaa\nbbb\nnnnnnnnnnnnnnnnnnnn");
-    urectangle region = {4, 12, 4, 40};
-    COLOR color = color_create_background_rgb(0, 0, 50);
-    print_string_segment_primitive(file_text, color, region);
-    //free_string(str);
-    free_string(color);
-
-    urectangle region2 = {13, 20, 4, 40};
-    COLOR color2 = color_create_background_rgb(0, 0, 80);
-    string instructions_string = string_create_from_fcharp("ctrl+c copy\nctrl+v paste\nctrl+z cancel\nctrl+o open");
-    print_string_segment_primitive(instructions_string, color2, region2);
-    free_string(instructions_string);
-    free_string(color);
-
-    free_string(file_text);
-}
-
 void test_interesting_picture()
 {
     terminal_erase_display;

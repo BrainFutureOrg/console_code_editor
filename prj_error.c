@@ -13,6 +13,9 @@ void print_error()
         case E2BIG:
             color_from_parts_printf(BOLD | FOREGROUND_RED, "ERROR: E2BIG\n");
             break;
+        case ERANGE:
+            color_from_parts_printf(BOLD | FOREGROUND_RED, "ERROR: ERANGE\n");
+            break;
         case EINVAL:
             color_from_parts_printf(BOLD | FOREGROUND_RED, "ERROR: EINVAL\n");
             break;

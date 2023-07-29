@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include "file_system_work.h"
+#include "../IO/DAO.h"
 #include <dirent.h>
 
 files_dirs_from_directory system_anchor_get_dir_content(file_system_anchor anchor)
@@ -52,6 +53,7 @@ file_system_anchor system_anchor_init()
     if (getcwd(cwd, sizeof(cwd)) == NULL)
     {
         errno = EXFULL;
+        result.path = string_create_from_fcharp("");
         return result;
     }
     result.path = string_create_from_fcharp(cwd);
@@ -109,4 +111,34 @@ void free_files_dirs_from_directory(files_dirs_from_directory dirs)
     free_string_array(&dirs.dirs);
     free_string_array(&dirs.files);
     free_string_array(&dirs.else_files);
+}
+
+string anchor_read_file(file_system_anchor anchor, char *filename)//anchor_open_file
+{
+    string path_to_file = path_join(anchor.path, filename);
+    string result = read_file(path_to_file.line);
+    free_string(path_to_file);
+    return result;
+}
+
+file_system_anchor anchor_copy(file_system_anchor anchor)
+{
+    file_system_anchor new;
+    new.path = string_copy(anchor.path);
+    return new;
+}
+
+void anchor_save_file(file_system_anchor anchor, char *filename, string contains)
+{
+    string path_to_file = path_join(anchor.path, filename);
+    save_file(contains, path_to_file.line);
+    free_string(path_to_file);
+}
+
+string path_join(string path, char *filename)
+{
+    string path_to_file = string_copy(path);
+    string_add_char(&path_to_file, '/');
+    string_add_charp(&path_to_file, filename);
+    return path_to_file;
 }

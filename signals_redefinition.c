@@ -34,7 +34,7 @@ void is_window_changed(int signal)
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
 
 //    write_log(DEBUG, "window_changed, rows: %d, columns: %d", w.ws_row, w.ws_col);
-
+    terminal_erase_screen;
     struct change_window_size_registrator *cwsr = main_change_window_size_registrator;
     while (cwsr != NULL)
     {

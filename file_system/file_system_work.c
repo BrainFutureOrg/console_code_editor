@@ -77,19 +77,26 @@ void system_anchor_go_back_from_dir(file_system_anchor *anchor)
         return;
     }
     while (*++end != '\0');
-    while (*--end != '\\');
+    //while (*--end != '\\');
+    while (*--end != '/' && *end != '\\');
     *end = '\0';
 }
-
+#include "../loging/log.h"
 string system_anchor_get_directory_name(file_system_anchor *anchor)
 {
+    //write_log(DEBUG, "entered ...get_dir_name");
+    //write_log(DEBUG, "path.line = %s", anchor->path.line);
     char *end = anchor->path.line;
     if (*end == '\0' || *(end + 1) == '\0')
     {
         return string_create_new(1);
     }
+    //write_log(DEBUG, "after \\0 check");
     while (*++end != '\0');
-    while (*--end != '\\');
+    //write_log(DEBUG, "c1 end");
+    while (*--end != '/' && *end != '\\');//
+    //write_log(DEBUG, "c2 now = %c", *end);
+    //write_log(DEBUG, "c2 end");
     return string_create_from_fcharp(end + 1);
 }
 

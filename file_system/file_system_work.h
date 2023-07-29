@@ -29,6 +29,9 @@ string system_anchor_get_directory_name(file_system_anchor *anchor);
 void free_file_system_anchor(file_system_anchor anchor);
 void free_files_dirs_from_directory(files_dirs_from_directory dirs);
 
-string anchor_open_file(file_system_anchor anchor, char *filename);
+string anchor_read_file(file_system_anchor anchor, char *filename);
+void anchor_save_file(file_system_anchor anchor, char *filename, string contains);
+
+file_system_anchor anchor_copy(file_system_anchor anchor);
 
 #endif //CONSOLE_CODE_EDITOR_FILE_SYSTEM_FILE_SYSTEM_WORK_H

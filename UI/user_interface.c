@@ -176,10 +176,10 @@ void start_plaintext_editor_UI_regular(string *str)
     COLOR label_color = color_create_background_rgb(15, 15, 70);//TODO: free
     urectangle label_region = {2, 3, 20, 70};//TODO:free
     string label_str = string_create_from_fcharp("[text name will be here]");
-    start_static_segment(label_str,
-                         label_color,
-                         label_region,
-                         changer_window_function_file_name);//TODO: for Maximus: finish
+    struct static_params *file_name_args = start_static_segment(label_str,
+                                                                label_color,
+                                                                label_region,
+                                                                changer_window_function_file_name);
 
     process_ctrl_func_list *list_element = calloc(1, sizeof(process_ctrl_func_list));
     list_element->next = NULL;
@@ -189,30 +189,39 @@ void start_plaintext_editor_UI_regular(string *str)
 
     urectangle instructions_region = {20, 22, 5, 70};
     COLOR instructions_color = color_create_background_rgb(15, 15, 70);//TODO free
-    string instructions_str = string_create_from_fcharp("ctrl+e - exit");
-    start_static_segment(instructions_str,
-                         instructions_color,
-                         instructions_region,
-                         changer_window_function_instructions);//TODO: for Maximus: finish
+    string instructions_str = string_create_from_fcharp("ctrl+e - exit   ctrl+f - filesystem");
+    struct static_params *instruction_args = start_static_segment(instructions_str,
+                                                                  instructions_color,
+                                                                  instructions_region,
+                                                                  changer_window_function_instructions);
 
     COLOR writeable_color = color_create_background_rgb(10, 10, 50);
     urectangle writeable_region = {3, 20, 20, 70};
-    start_write_segment(str,
-                        writeable_region,
-                        changer_window_function_writeable,
-                        writeable_color); //TODO: for Maximus: finish
+    struct write_segment_params *write_args = start_write_segment(str,
+                                                                  writeable_region,
+                                                                  changer_window_function_writeable,
+                                                                  writeable_color);
 
     urectangle filesystem_region = {2, 20, 5, 20};
     string bg_dir = color_create_background_rgb(10, 10, 10);
-    string fg_dir = color_create_foreground_rgb(200, 20, 20);
+    string fg_dir = color_create_foreground_rgb(200, 100, 100);
     string_add_string(&bg_dir, fg_dir);
     string bg_file = color_create_background_rgb(10, 10, 10);
-    string fg_file = color_create_foreground_rgb(20, 20, 200);
+    string fg_file = color_create_foreground_rgb(100, 100, 200);
     string_add_string(&bg_file, fg_file);
     filesystem_color_scheme filesystem_colors = {bg_dir, bg_file, bg_file};
-    start_filesystem_segment(system_anchor_init(),
-                             filesystem_region,
-                             changer_window_function_filesystem, filesystem_colors, "  ");//TODO: for Maximus: finish
+    struct filesystem_segment_params *filesystem_args = start_filesystem_segment(system_anchor_init(),
+                                                                                 filesystem_region,
+                                                                                 changer_window_function_filesystem,
+                                                                                 filesystem_colors,
+                                                                                 "  ");
+
+    write_args->active = 1;//
+    write_args->filesystem_segment_args = filesystem_args;
+    filesystem_args->active = 0;//
+    filesystem_args->write_segment_args = write_args;
+    filesystem_args->file_name_segment_args = file_name_args;
+
     raise(SIGWINCH);
     read_process_keys(general_arrow_process_funcs,
                       general_char_process_funcs,

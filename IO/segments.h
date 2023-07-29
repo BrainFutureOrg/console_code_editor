@@ -47,10 +47,14 @@ struct write_segment_params
     string *str;
     urectangle screen_region;
     COLOR color;
+    char active;
+    struct filesystem_segment_params *filesystem_segment_args;
 };
 void render_writeable_segment(void *args);
-void start_write_segment(string *str, urectangle screen_region,
-                         void (*changer_function)(void *element, struct winsize w), COLOR color);
+struct write_segment_params *start_write_segment(string *str,
+                                                 urectangle screen_region,
+                                                 void (*changer_function)(void *element, struct winsize w),
+                                                 COLOR color);
 
 struct directory_tree
 {
@@ -66,13 +70,16 @@ struct filesystem_segment_params
     char *prefix, print_name;
     file_system_anchor current_outermost_dir;
     struct directory_tree dir;
+    char active;
+    struct write_segment_params *write_segment_args;
+    struct static_params *file_name_segment_args;
 };
 void render_filesystem_segment(void *args);
-void start_filesystem_segment(file_system_anchor anchor,
-                              urectangle screen_region,
-                              void (*changer_function)(void *element, struct winsize w),
-                              filesystem_color_scheme color_scheme,
-                              char *prefix);
+struct filesystem_segment_params *start_filesystem_segment(file_system_anchor anchor,
+                                                           urectangle screen_region,
+                                                           void (*changer_function)(void *element, struct winsize w),
+                                                           filesystem_color_scheme color_scheme,
+                                                           char *prefix);
 
 struct static_params
 {
@@ -81,9 +88,9 @@ struct static_params
     COLOR color;
 };
 void render_static_segment(void *args);
-void start_static_segment(string str,
-                          COLOR color,
-                          urectangle screen_region,
-                          void (*changer_function)(void *element, struct winsize w));
+struct static_params *start_static_segment(string str,
+                                           COLOR color,
+                                           urectangle screen_region,
+                                           void (*changer_function)(void *element, struct winsize w));
 
 #endif //CONSOLE_CODE_EDITOR_SEGMENTS_H

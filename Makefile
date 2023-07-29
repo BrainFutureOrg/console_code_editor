@@ -7,3 +7,7 @@ compile_run:
 
 run_in_terminal:
 	gnome-terminal --command="make compile_run" &
+
+run_with_valgrind:
+	make compile
+	valgrind -v --tool=memcheck --leak-check=yes --track-origins=yes ./main

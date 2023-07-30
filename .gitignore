@@ -103,3 +103,6 @@ fabric.properties
 # data ignoring
 cmake-build-debug/mnist_test.csv
 cmake-build-debug/mnist_train.csv
+
+# version git data ignore
+git_variables.h

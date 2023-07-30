@@ -171,8 +171,11 @@ void render_writeable_segment(void *args)
         newline_count += *line++ == '\n';
     }
     print_segment_plaintext_shifted(line, args_struct->screen_region, args_struct->shift_col);
+    write_log(DEBUG, "pre-goto");
     terminal_goto(args_struct->str_row - args_struct->shift_row + args_struct->screen_region.row_start,
                   args_struct->str_col - args_struct->shift_col + args_struct->screen_region.col_start)
+    if (args_struct->active)
+        terminal_visible_cursor;
     color_to_default();
 }
 
@@ -362,6 +365,13 @@ void process_ctrl_in_writeable(char c, void *args)
         terminal_invisible_cursor;
         args_struct->active = 0;
         args_struct->filesystem_segment_args->active = 1;
+    }
+    else if (c == CTRL_('N'))
+    {
+        write_log(DEBUG, "ctrl n");
+        args_struct->active = 0;
+        args_struct->file_name_args->active = 1;
+        render_file_name_segment(args_struct->file_name_args);
     }
 }
 
@@ -779,7 +789,8 @@ enum recursive_state enter_cursor_recursive(file_system_anchor *anchor_to_change
         render_writeable_segment(args->write_segment_args);
 
         args->file_name_segment_args->str = filename;
-        render_static_segment(args->file_name_segment_args);
+        args->file_name_segment_args->anchor = *anchor_to_change;
+        render_file_name_segment(args->file_name_segment_args);
         //write_log(DEBUG, "entered file, %d < %d", dir_old->files.size, cursor - *depth + 1);
         return STATE_FILE;
     }
@@ -812,6 +823,7 @@ void process_char_filesystem(char c, void *args)
                 //free_directory_tree_voidp(&args_struct->dir);
                 args_struct->dir = *new_dir;
                 args_struct->cursor = 1;
+                args_struct->vertical_shift = 0;
                 break;
             case STATE_FILE:
                 break;
@@ -840,12 +852,7 @@ void process_char_filesystem(char c, void *args)
     {
         args_struct->active = 0;
         args_struct->write_segment_args->active = 1;
-        terminal_visible_cursor;
-        terminal_goto(
-            args_struct->write_segment_args->screen_region.row_start + args_struct->write_segment_args->str_row
-                - args_struct->write_segment_args->shift_row,
-            args_struct->write_segment_args->screen_region.col_start + args_struct->write_segment_args->str_col
-                - args_struct->write_segment_args->shift_col)
+        render_writeable_segment(args_struct->write_segment_args);
     }
     if (c == 'b' || c == 'B')
     {
@@ -939,5 +946,167 @@ struct static_params *start_static_segment(string str,
 
     registration_for_window_size_update(args, changer_function);
     render_static_segment(args);
+    return args;
+}
+
+void render_file_name_segment(void *args)
+{
+    struct file_name_params *args_struct = args;
+    uint width = args_struct->screen_region.col_end - args_struct->screen_region.col_start;
+    if (args_struct->screen_region.row_start != args_struct->screen_region.row_end)
+    {
+        terminal_goto(args_struct->screen_region.row_start, args_struct->screen_region.col_start)
+        printf("%s", args_struct->anchor_color.line);
+        string full_path = system_anchor_get_full_path(args_struct->anchor);
+        char *line_anchor = full_path.line, *line_name = args_struct->str.line;
+        uint j = width + args_struct->shift;
+        while (*line_anchor != '\0' && j)
+        {
+            if (j <= width)
+                putchar(*line_anchor);
+            line_anchor++;
+            j--;
+        }
+        if (j)
+        {
+            if (j <= width)
+                putchar('/');
+            j--;
+        }
+        printf("%s", args_struct->name_color.line);
+        while (*line_name != '\0' && j)
+        {
+            if (j <= width)
+                putchar(*line_name);
+            line_name++;
+            j--;
+        }
+        while (j)
+        {
+            if (j <= width)
+                putchar(' ');
+            j--;
+        }
+
+        //free_string(full_path);
+
+        for (uint i = 1; i < args_struct->screen_region.row_end - args_struct->screen_region.row_start; i++)
+        {
+            terminal_goto(args_struct->screen_region.row_start + i, args_struct->screen_region.col_start)
+            for (j = width; j--;)
+            {
+                putchar(' ');
+            }
+        }
+    }
+    color_to_default();
+    if (args_struct->active)
+    {
+        terminal_goto(args_struct->screen_region.row_start,
+                      args_struct->screen_region.col_start + args_struct->cursor - args_struct->shift);
+    }
+}
+
+void process_arrow_file_name(ARROW arrow, void *args)
+{
+    struct file_name_params *args_struct = args;
+    if (!args_struct->active)
+    {
+        return;
+    }
+    if (arrow == LEFT)
+    {
+        if (args_struct->cursor)
+        {
+            args_struct->cursor--;
+            if (args_struct->cursor < args_struct->shift)
+                args_struct->shift = args_struct->cursor;
+        }
+    }
+    else if (arrow == RIGHT)
+    {
+        string full_path = system_anchor_get_full_path(args_struct->anchor);
+        uint len = strlen(full_path.line) + strlen(args_struct->str.line) + 1;
+        //free_string(full_path);
+        if (args_struct->cursor < len)
+        {
+            args_struct->cursor++;
+            if (args_struct->cursor
+                > args_struct->shift + args_struct->screen_region.col_end - args_struct->screen_region.col_start - 1)
+            {
+                args_struct->shift =
+                    args_struct->cursor - args_struct->screen_region.col_end + args_struct->screen_region.col_start + 1;
+            }
+        }
+    }
+    render_file_name_segment(args);
+}
+
+void process_char_file_name(char c, void *args)
+{
+    struct file_name_params *args_struct = args;
+    if (!args_struct->active)
+    {
+        return;
+    }
+    if (c == '\n')
+    {
+        args_struct->write_args->active = 1;
+        render_writeable_segment(args_struct->write_args);
+        args_struct->active = 0;
+        return;
+    }
+    string full_path = system_anchor_get_full_path(args_struct->anchor);
+    uint pre_len = strlen(full_path.line) + 1;
+    //free_string(full_path);
+    if (args_struct->cursor >= pre_len)
+    {
+        insert_into_string_multiline(&args_struct->str, c, 0, args_struct->cursor - pre_len);
+        args_struct->cursor++;
+
+        //not sure:
+        if (args_struct->cursor
+            > args_struct->shift + args_struct->screen_region.col_end - args_struct->screen_region.col_start - 1)
+        {
+            args_struct->shift =
+                args_struct->cursor - args_struct->screen_region.col_end + args_struct->screen_region.col_start + 1;
+        }
+    }
+
+    render_file_name_segment(args);
+}
+
+struct file_name_params *start_file_name_segment(file_system_anchor anchor, string str,
+                                                 COLOR color_anchor,
+                                                 COLOR color_name,
+                                                 urectangle screen_region,
+                                                 void (*changer_function)(void *element, struct winsize w))
+{
+    write_log(DEBUG, "start file name started");
+    struct file_name_params *args = calloc(1, sizeof(struct file_name_params));
+    args->anchor = anchor;
+    args->str = str;
+    args->anchor_color = color_anchor;
+    args->name_color = color_name;
+    args->screen_region = screen_region;
+    args->cursor = 0;
+    args->shift = 0;
+
+    process_arrow_func_list *list_element = calloc(1, sizeof(process_arrow_func_list));
+    list_element->next = NULL;
+    list_element->args = args;
+    list_element->process_arrow = process_arrow_file_name;
+    append_processing(process_arrow_func_list, general_arrow_process_funcs, list_element)
+
+    process_char_func_list *list_element_char = calloc(1, sizeof(process_char_func_list));
+    list_element_char->args = args;
+    list_element_char->next = NULL;
+    list_element_char->process_char = process_char_file_name;
+    append_processing(process_char_func_list, general_char_process_funcs, list_element_char)
+
+    registration_for_window_size_update(args, changer_function);
+    write_log(DEBUG, "start file name pre-render");
+    render_file_name_segment(args);
+    write_log(DEBUG, "start file name ended");
     return args;
 }

@@ -56,32 +56,35 @@ void print_version()
 
 enum STOP_RESUME argv_checker(int argc, char **argv)
 {
-    write_log(INFO, "argc = %d\n", argc);
-    if (strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-h") == 0)
+    for (int i = 1; i < argc; ++i)
     {
-        print_help();
-        return STOP_PROGRAM;
-    }
-    if (strcmp(argv[1], "--version") == 0 || strcmp(argv[1], "-v") == 0)
-    {
-        print_version();
-        return STOP_PROGRAM;
-    }
-    if (strcmp(argv[1], "--open") == 0 || strcmp(argv[1], "-o") == 0)
-    {
-        write_log(DEBUG, "open\n");
-        //TODO: realization
-        return RESUME_PROGRAM;
-    }
+        write_log(INFO, "argc = %d\n", argc);
+        if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0)
+        {
+            print_help();
+            return STOP_PROGRAM;
+        }
+        if (strcmp(argv[i], "--version") == 0 || strcmp(argv[i], "-v") == 0)
+        {
+            print_version();
+            return STOP_PROGRAM;
+        }
+        if (strcmp(argv[i], "--open") == 0 || strcmp(argv[i], "-o") == 0)
+        {
+            write_log(DEBUG, "open\n");
+            //TODO: realization
+            return RESUME_PROGRAM;
+        }
 
-    if (strcmp(argv[1], "--test") == 0)
-    {
-        tests();
+        if (strcmp(argv[i], "--test") == 0)
+        {
+            tests();
+            return STOP_PROGRAM;
+        }
+        printf("To see available options type '%s --help'\n", argv[0]);
         return STOP_PROGRAM;
     }
-    printf("To see available options type '%s --help'\n", argv[0]);
     return STOP_PROGRAM;
-
 }
 
 int main(int argc, char **argv)

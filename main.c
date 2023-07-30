@@ -10,6 +10,14 @@
 #include "signals_redefinition.h"
 #include "prj_error.h"
 
+#if __has_include("git_variables.h")
+#include "git_variables.h"
+#endif
+
+#ifndef GIT_LAST_COMMIT_HASH
+#define GIT_LAST_COMMIT_HASH "hasn't_version"
+#endif
+
 void tests();
 
 //void moving_text_prototype()
@@ -31,14 +39,62 @@ void UIprototype()
     free_string(text);
 }
 
+enum STOP_RESUME
+{
+    STOP_PROGRAM,
+    RESUME_PROGRAM
+};
+
+void print_help()
+{
+    printf("Here will be some help info\n");
+}
+void print_version()
+{
+    printf("TextManiac - Version alpha 0.0.%s\n", GIT_LAST_COMMIT_HASH);
+}
+
+enum STOP_RESUME argv_checker(int argc, char **argv)
+{
+    write_log(INFO, "argc = %d\n", argc);
+    if (strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-h") == 0)
+    {
+        print_help();
+        return STOP_PROGRAM;
+    }
+    if (strcmp(argv[1], "--version") == 0 || strcmp(argv[1], "-v") == 0)
+    {
+        print_version();
+        return STOP_PROGRAM;
+    }
+    if (strcmp(argv[1], "--open") == 0 || strcmp(argv[1], "-o") == 0)
+    {
+        write_log(DEBUG, "open\n");
+        //TODO: realization
+        return RESUME_PROGRAM;
+    }
+
+    if (strcmp(argv[1], "--test") == 0)
+    {
+        tests();
+        return STOP_PROGRAM;
+    }
+    printf("To see available options type '%s --help'\n", argv[0]);
+    return STOP_PROGRAM;
+
+}
+
 int main(int argc, char **argv)
 {
     init_logger(DEBUG, "log.txt");
     write_log(INFO, "Program start");
     redefine_signals();
     print_logo();
-    tests();
 
+    if (argv_checker(argc, argv) == STOP_PROGRAM)
+    {
+        return 0;
+    }
     //test_cursor_functions();// test that prints strange things
 //    test_console_games_functions(2);
 //    test_urectangle_region_functionality();

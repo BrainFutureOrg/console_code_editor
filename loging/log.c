@@ -45,15 +45,39 @@ void write_log(LogLevel logLevel, const char *fmessage, ...)
 {
     if (logLevel <= logLevel_global)
     {
+        va_list args;
+        va_start(args, fmessage);
+        write_vlog(logLevel, fmessage, args);
+        va_end(args);
+    }
+//    if (logLevel <= logLevel_global)
+//    {
+//        FILE *fp = fopen(log_filename_global, "a+");
+//
+//        print_time(fp);
+//        fprintf(fp, " %s ", log_to_str(logLevel));
+//
+//        va_list args;
+//        va_start(args, fmessage);
+//        vfprintf(fp, fmessage, args);
+//        va_end(args);
+//
+//        putc('\n', fp);
+//
+//        fclose(fp);
+//    }
+}
+
+void write_vlog(LogLevel logLevel, const char *fmessage, va_list args)
+{
+    if (logLevel <= logLevel_global)
+    {
         FILE *fp = fopen(log_filename_global, "a+");
 
         print_time(fp);
         fprintf(fp, " %s ", log_to_str(logLevel));
 
-        va_list args;
-        va_start(args, fmessage);
         vfprintf(fp, fmessage, args);
-        va_end(args);
 
         putc('\n', fp);
 

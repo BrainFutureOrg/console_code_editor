@@ -17,6 +17,20 @@ void assertNotEqual(void *first,
                     char *test_name,
                     char *text_error_formated,
                     ...);
+
 void print_test_success();
+
+void assertEqual_log(void *first,
+                     void *second,
+                     char (*equal_function)(void *first, void *second),
+                     char *test_name,
+                     char *ftext_error,
+                     ...);
+void assertNotEqual_log(void *first,
+                        void *second,
+                        char (*equal_function)(void *first, void *second),
+                        char *test_name,
+                        char *ftext_error,
+                        ...);
 
 #endif //CONSOLE_CODE_EDITOR_TEST_TEST_FUNCS_H

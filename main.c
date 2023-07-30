@@ -84,7 +84,7 @@ enum STOP_RESUME argv_checker(int argc, char **argv)
         printf("To see available options type '%s --help'\n", argv[0]);
         return STOP_PROGRAM;
     }
-    return STOP_PROGRAM;
+    return RESUME_PROGRAM;
 }
 
 int main(int argc, char **argv)

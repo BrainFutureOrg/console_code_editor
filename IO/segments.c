@@ -716,6 +716,21 @@ struct directory_tree *dir_tree_from_anchor(file_system_anchor anchor)
     return result;
 }
 
+void render_writeable_segment_self_delete(void *args)
+{
+    write_log(DEBUG, "render self destruct start");
+    render_writeable_segment(args);
+    delete_from_after_key_list_global(render_writeable_segment_self_delete, args);
+}
+
+void activate_writeable_segment_self_delete(void *args)
+{
+    write_log(DEBUG, "activate self destruct start");
+    struct write_segment_params *args_struct = args;
+    args_struct->active = 1;
+    delete_from_after_key_list_global(activate_writeable_segment_self_delete, args);
+}
+
 enum recursive_state enter_cursor_recursive(file_system_anchor *anchor_to_change,
                                             struct directory_tree *dir_new,
                                             struct directory_tree *dir_old,
@@ -786,7 +801,14 @@ enum recursive_state enter_cursor_recursive(file_system_anchor *anchor_to_change
         *result = anchor_read_file(*anchor_to_change, filename.line);
         //write_log(DEBUG, "file enter got str");
         args->write_segment_args->str = result;
-        render_writeable_segment(args->write_segment_args);
+
+        //render_writeable_segment(args->write_segment_args); // ->
+        process_after_key_list *element = calloc(1, sizeof(process_after_key_list));
+        element->args = args->write_segment_args;
+        element->process_after_key = render_writeable_segment_self_delete;
+        element->free_args = NULL;
+        append_processing(process_after_key_list, general_after_key_funcs, element)
+        write_log(DEBUG, "general after arrow %s NULL", general_after_key_funcs == NULL ? "==" : "!=");
 
         args->file_name_segment_args->str = filename;
         args->file_name_segment_args->anchor = *anchor_to_change;
@@ -852,7 +874,13 @@ void process_char_filesystem(char c, void *args)
     {
         args_struct->active = 0;
         args_struct->write_segment_args->active = 1;
-        render_writeable_segment(args_struct->write_segment_args);
+
+        //render_writeable_segment(args_struct->write_segment_args);
+        process_after_key_list *element = calloc(1, sizeof(process_after_key_list));
+        element->args = args_struct->write_segment_args;
+        element->process_after_key = render_writeable_segment_self_delete;
+        element->free_args = NULL;
+        append_processing(process_after_key_list, general_after_key_funcs, element)
     }
     if (c == 'b' || c == 'B')
     {
@@ -1051,8 +1079,20 @@ void process_char_file_name(char c, void *args)
     }
     if (c == '\n')
     {
-        args_struct->write_args->active = 1;
-        render_writeable_segment(args_struct->write_args);
+        //args_struct->write_args->active = 1;
+        //render_writeable_segment(args_struct->write_args);
+        process_after_key_list *element = calloc(1, sizeof(process_after_key_list));
+        element->args = args_struct->write_args;
+        element->process_after_key = render_writeable_segment_self_delete;
+        element->free_args = NULL;
+        append_processing(process_after_key_list, general_after_key_funcs, element)
+
+        process_after_key_list *element2 = calloc(1, sizeof(process_after_key_list));
+        element2->args = args_struct->write_args;
+        element2->process_after_key = activate_writeable_segment_self_delete;
+        element2->free_args = NULL;
+        append_processing(process_after_key_list, general_after_key_funcs, element2)
+
         args_struct->active = 0;
         return;
     }

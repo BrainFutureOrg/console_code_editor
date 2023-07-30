@@ -26,6 +26,7 @@ typedef enum
 typedef struct process_arrow_func_list process_arrow_func_list;
 typedef struct process_char_func_list process_char_func_list;
 typedef struct process_ctrl_func_list process_ctrl_func_list;
+typedef struct process_after_key_list process_after_key_list;
 struct process_arrow_func_list
 {
     void
@@ -53,11 +54,20 @@ struct process_ctrl_func_list
     void
     (*free_args)(void *args);
 };
-
+struct process_after_key_list
+{
+    void
+    (*process_after_key)(void *args);
+    process_after_key_list *next;
+    void *args;
+    void
+    (*free_args)(void *args);
+};
 //global lists of key input processing functions
 extern process_arrow_func_list *general_arrow_process_funcs;//TODO free
 extern process_char_func_list *general_char_process_funcs;//TODO free
 extern process_ctrl_func_list *general_ctrl_process_funcs;//TODO free
+extern process_after_key_list *general_after_key_funcs;//TODO free
 
 //append element to processing list of type
 #define append_processing(list_type, list_name, element_pointer) \
@@ -77,10 +87,24 @@ extern process_ctrl_func_list *general_ctrl_process_funcs;//TODO free
         }                                                        \
     }
 
+void delete_from_after_key_list_global(void(*func)(void *), void *args);
+
+
+/*#define remove_processing(list_type, list_name, func, args)
+{
+    list_type *list=list_name;
+    if(list!=NULL){
+        while(list.next!=NULL){
+            if(list.next.args==args&&list.next.)
+        }
+    }
+}*/
 //read keys and apply processing lists to them
 void read_process_keys(process_arrow_func_list *process_arrow_funcs,
                        process_char_func_list *process_char_funcs,
-                       process_ctrl_func_list *process_ctrl_funcs);
+                       process_ctrl_func_list *process_ctrl_funcs, process_after_key_list *process_after_key_funcs);
+
+void read_process_keys_global();
 
 //terminal input ender (affects read_process_keys function)
 void ctrl_e_end(char c);

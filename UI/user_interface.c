@@ -239,9 +239,10 @@ void start_plaintext_editor_UI_regular(string *str)
     write_log(DEBUG, "ui pre-render");
     raise(SIGWINCH);
     write_log(DEBUG, "ui post-render");
-    read_process_keys(general_arrow_process_funcs,
+    /*read_process_keys(general_arrow_process_funcs,
                       general_char_process_funcs,
-                      general_ctrl_process_funcs);
+                      general_ctrl_process_funcs, general_after_key_funcs);*/
+    read_process_keys_global();
     color_to_default();
 }
 //prototype

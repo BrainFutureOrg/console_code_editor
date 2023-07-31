@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include "DAO.h"
 #include "../prj_error.h"
+#include "../loging/log.h"
 
 FILE *open_file_checking(char *filename, char *type)
 {
@@ -12,6 +13,8 @@ FILE *open_file_checking(char *filename, char *type)
     if (!(fp = fopen(filename, type)))
     {
         errno = EACCES;
+        write_log(FATAL, "File not opened, filename = %s, type = %s", filename, type);
+
     }
     return fp;
 

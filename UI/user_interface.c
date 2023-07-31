@@ -17,9 +17,9 @@ void print_logo()
     color_to_rgb_foreground(200, 150, 50);
     color_to_rgb_background(0, 0, 0);
 
-    printf("C Code ");
+    printf("Text");
     color_inverse();
-    printf("Editor\n");
+    printf("Maniac\n");
     color_to_default();
 }
 

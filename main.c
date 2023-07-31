@@ -58,7 +58,7 @@ enum STOP_RESUME argv_checker(int argc, char **argv)
 {
     for (int i = 1; i < argc; ++i)
     {
-        write_log(INFO, "argc = %d\n", argc);
+        write_log(INFO, "argc = %d", argc);
         if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0)
         {
             print_help();
@@ -89,7 +89,7 @@ enum STOP_RESUME argv_checker(int argc, char **argv)
 
 int main(int argc, char **argv)
 {
-    init_logger(DEBUG, "log.txt");
+    init_logger(INFO, "log.txt");
     write_log(INFO, "Program start");
     redefine_signals();
     print_logo();

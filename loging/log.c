@@ -41,6 +41,9 @@ char *log_to_str(LogLevel logLevel)
     return NULL;
 }
 
+/*
+ * logLevel are: FATAL, ERROR, WARNING, INFO, DEBUG
+ */
 void write_log(LogLevel logLevel, const char *fmessage, ...)
 {
     if (logLevel <= logLevel_global)

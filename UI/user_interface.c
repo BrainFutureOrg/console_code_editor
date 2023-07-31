@@ -194,10 +194,10 @@ void start_plaintext_editor_UI_regular(string *str)
 {
     terminal_erase_screen;
 
-    string bg_label_anchor = color_create_background_rgb(15, 15, 70);
+    string bg_label_anchor = color_create_background_rgb(20, 20, 82);
     string fg_label_anchor = color_create_foreground_rgb(170, 170, 170);
     string_add_string(&bg_label_anchor, fg_label_anchor);
-    string bg_label_name = color_create_background_rgb(15, 15, 70);
+    string bg_label_name = color_create_background_rgb(20, 20, 82);
     string fg_label_name = color_create_foreground_rgb(255, 255, 255);
     string_add_string(&bg_label_name, fg_label_name);
     urectangle label_region = {2, 3, 20, 70};//TODO:free
@@ -220,15 +220,15 @@ void start_plaintext_editor_UI_regular(string *str)
     append_processing(process_ctrl_func_list, general_ctrl_process_funcs, list_element)
 
     urectangle instructions_region = {20, 22, 5, 70};
-    COLOR instructions_color = color_create_background_rgb(15, 15, 70);//TODO free
+    COLOR instructions_color = color_create_background_rgb(20, 20, 82);//TODO free
     string instructions_str = string_create_from_fcharp("ctrl+e - exit   ctrl+f - filesystem  ctrl+x - save");
     struct static_params *instruction_args = start_static_segment(instructions_str,
                                                                   instructions_color,
                                                                   instructions_region,
                                                                   changer_window_function_instructions);
 
-    COLOR writeable_color = color_create_background_rgb(10, 10, 50);
-    COLOR writeable_color_highlight = color_create_background_rgb(12, 12, 70);
+    COLOR writeable_color = color_create_background_rgb(7, 7, 35);
+    COLOR writeable_color_highlight = color_create_background_rgb(13, 13, 55);
     urectangle writeable_region = {3, 20, 20, 70};
     struct write_segment_params *write_args = start_write_segment(str,
                                                                   writeable_region,
@@ -236,11 +236,11 @@ void start_plaintext_editor_UI_regular(string *str)
                                                                   writeable_color, writeable_color_highlight);
 
     urectangle filesystem_region = {2, 20, 5, 20};
-    string bg_dir = color_create_background_rgb(10, 10, 10);
-    string fg_dir = color_create_foreground_rgb(200, 100, 100);
+    string bg_dir = color_create_background_rgb(12, 12, 60);
+    string fg_dir = color_create_foreground_rgb(255, 100, 100);
     string_add_string(&bg_dir, fg_dir);
-    string bg_file = color_create_background_rgb(10, 10, 10);
-    string fg_file = color_create_foreground_rgb(100, 100, 200);
+    string bg_file = color_create_background_rgb(12, 12, 60);
+    string fg_file = color_create_foreground_rgb(100, 100, 255);
     string_add_string(&bg_file, fg_file);
     filesystem_color_scheme filesystem_colors = {bg_dir, bg_file, bg_file};
     struct filesystem_segment_params *filesystem_args = start_filesystem_segment(system_anchor_init(),

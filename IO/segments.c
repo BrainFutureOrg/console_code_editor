@@ -1200,15 +1200,28 @@ void process_char_file_name(char c, void *args)
     //free_string(full_path);
     if (args_struct->cursor >= pre_len)
     {
-        insert_into_string_multiline(&args_struct->str, c, 0, args_struct->cursor - pre_len);
-        args_struct->cursor++;
-
-        //not sure:
-        if (args_struct->cursor
-            > args_struct->shift + args_struct->screen_region.col_end - args_struct->screen_region.col_start - 1)
+        if (c == DEL)
         {
-            args_struct->shift =
-                args_struct->cursor - args_struct->screen_region.col_end + args_struct->screen_region.col_start + 1;
+            if (args_struct->cursor > pre_len)
+            {
+                args_struct->cursor--;
+                if (args_struct->cursor < args_struct->shift)
+                    args_struct->shift = args_struct->cursor;
+                delete_from_string_multiline(&args_struct->str, 0, args_struct->cursor - pre_len);
+            }
+        }
+        else
+        {
+            insert_into_string_multiline(&args_struct->str, c, 0, args_struct->cursor - pre_len);
+            args_struct->cursor++;
+
+            //not sure:
+            if (args_struct->cursor
+                > args_struct->shift + args_struct->screen_region.col_end - args_struct->screen_region.col_start - 1)
+            {
+                args_struct->shift =
+                    args_struct->cursor - args_struct->screen_region.col_end + args_struct->screen_region.col_start + 1;
+            }
         }
     }
 

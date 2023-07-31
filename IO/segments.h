@@ -47,15 +47,17 @@ struct write_segment_params
     string *str;
     urectangle screen_region;
     COLOR color;
+    COLOR current_line_color;
     char active;
     struct filesystem_segment_params *filesystem_segment_args;
     struct file_name_params *file_name_args;
+    struct static_params *instruction_args;
 };
 void render_writeable_segment(void *args);
 struct write_segment_params *start_write_segment(string *str,
                                                  urectangle screen_region,
                                                  void (*changer_function)(void *element, struct winsize w),
-                                                 COLOR color);
+                                                 COLOR color, COLOR current_line_color);
 
 struct directory_tree
 {
@@ -74,6 +76,7 @@ struct filesystem_segment_params
     char active;
     struct write_segment_params *write_segment_args;
     struct file_name_params *file_name_segment_args;
+    struct static_params *instruction_args;
 };
 void render_filesystem_segment(void *args);
 struct filesystem_segment_params *start_filesystem_segment(file_system_anchor anchor,
@@ -105,6 +108,7 @@ struct file_name_params
     uint shift;
     char active;
     struct write_segment_params *write_args;
+    struct static_params *instruction_args;
 };
 void render_file_name_segment(void *args);
 struct file_name_params *start_file_name_segment(file_system_anchor anchor, string str,

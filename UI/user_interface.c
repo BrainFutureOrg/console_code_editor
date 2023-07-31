@@ -170,6 +170,26 @@ void changer_function_empty(void *element, struct winsize w)
 {
 
 }
+
+struct writeable_filename_connector
+{
+    struct write_segment_params *writeable_args;
+    struct file_name_params *filename_args;
+};
+
+void ctrl_save(char c, void *args)
+{
+    struct writeable_filename_connector *args_struct = args;
+    if (!args_struct->writeable_args->active)
+        return;
+    if (c == CTRL_('X'))
+    {
+        //write_log(DEBUG, "ctrl+x");
+        anchor_save_file(args_struct->filename_args->anchor,
+                         args_struct->filename_args->str.line,
+                         *args_struct->writeable_args->str);
+    }
+}
 void start_plaintext_editor_UI_regular(string *str)
 {
     terminal_erase_screen;
@@ -201,18 +221,19 @@ void start_plaintext_editor_UI_regular(string *str)
 
     urectangle instructions_region = {20, 22, 5, 70};
     COLOR instructions_color = color_create_background_rgb(15, 15, 70);//TODO free
-    string instructions_str = string_create_from_fcharp("ctrl+e - exit   ctrl+f - filesystem");
+    string instructions_str = string_create_from_fcharp("ctrl+e - exit   ctrl+f - filesystem  ctrl+x - save");
     struct static_params *instruction_args = start_static_segment(instructions_str,
                                                                   instructions_color,
                                                                   instructions_region,
                                                                   changer_window_function_instructions);
 
     COLOR writeable_color = color_create_background_rgb(10, 10, 50);
+    COLOR writeable_color_highlight = color_create_background_rgb(12, 12, 70);
     urectangle writeable_region = {3, 20, 20, 70};
     struct write_segment_params *write_args = start_write_segment(str,
                                                                   writeable_region,
                                                                   changer_window_function_writeable,
-                                                                  writeable_color);
+                                                                  writeable_color, writeable_color_highlight);
 
     urectangle filesystem_region = {2, 20, 5, 20};
     string bg_dir = color_create_background_rgb(10, 10, 10);
@@ -235,6 +256,19 @@ void start_plaintext_editor_UI_regular(string *str)
     filesystem_args->file_name_segment_args = file_name_args;
     file_name_args->write_args = write_args;
     write_args->file_name_args = file_name_args;
+
+    process_ctrl_func_list *list_element_save = calloc(1, sizeof(process_ctrl_func_list));
+    list_element_save->next = NULL;
+    struct writeable_filename_connector *save_args = calloc(1, sizeof(struct writeable_filename_connector));
+    save_args->writeable_args = write_args;
+    save_args->filename_args = file_name_args;
+    list_element_save->args = save_args;
+    list_element_save->process_ctrl_char = ctrl_save;
+    append_processing(process_ctrl_func_list, general_ctrl_process_funcs, list_element_save)
+
+    write_args->instruction_args = instruction_args;
+    file_name_args->instruction_args = instruction_args;
+    filesystem_args->instruction_args = instruction_args;
 
     write_log(DEBUG, "ui pre-render");
     raise(SIGWINCH);

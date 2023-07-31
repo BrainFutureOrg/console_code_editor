@@ -101,6 +101,64 @@ void print_segment_plaintext_shifted(char *text, urectangle screen_region, uint 
     }
 }
 
+void print_segment_plaintext_shifted_line_highlight(char *text,
+                                                    urectangle screen_region,
+                                                    uint text_start_col,
+                                                    COLOR main_color,
+                                                    COLOR highlight_color,
+                                                    uint highlight_line,
+                                                    char highlight)
+{
+    terminal_goto(screen_region.row_start, screen_region.col_start)
+    for (uint row = screen_region.row_start; row < screen_region.row_end; row++)
+    {
+        if (row - screen_region.row_start == highlight_line && highlight)
+        {
+            printf("%s", highlight_color.line);
+        }
+        else
+        {
+            printf("%s", main_color.line);
+        }
+        for (int i = 0; i < text_start_col; i++)
+        {
+            if (*text == '\0' || *text == '\n')
+                break;
+            else
+                text++;
+        }
+        for (uint col = screen_region.col_start; col < screen_region.col_end; col++)
+        {
+            if (*text != '\0')
+            {
+                if (*text == '\n')
+                {
+                    while (col++ < screen_region.col_end)
+                        printf(" ");
+                }
+                else
+                {
+                    printf("%c", *text);
+                    text++;
+                }
+            }
+            else
+            {
+                printf(" ");
+            }
+        }
+        if (*text == '\n')
+        {
+            text++;
+        }
+        else
+        {
+            while (*text != '\0' && *text++ != '\n');
+        }
+        terminal_goto(row + 1, screen_region.col_start);
+    }
+}
+
 void render_readonly_segment(void *args)
 {
     struct move_readonly_params *args_struct = args;
@@ -170,8 +228,15 @@ void render_writeable_segment(void *args)
     {
         newline_count += *line++ == '\n';
     }
-    print_segment_plaintext_shifted(line, args_struct->screen_region, args_struct->shift_col);
-    write_log(DEBUG, "pre-goto");
+    //print_segment_plaintext_shifted(line, args_struct->screen_region, args_struct->shift_col);
+    print_segment_plaintext_shifted_line_highlight(line,
+                                                   args_struct->screen_region,
+                                                   args_struct->shift_col,
+                                                   args_struct->color,
+                                                   args_struct->current_line_color,
+                                                   args_struct->str_row - args_struct->shift_row,
+                                                   args_struct->active);
+    //write_log(DEBUG, "pre-goto");
     terminal_goto(args_struct->str_row - args_struct->shift_row + args_struct->screen_region.row_start,
                   args_struct->str_col - args_struct->shift_col + args_struct->screen_region.col_start)
     if (args_struct->active)
@@ -355,6 +420,12 @@ void process_char_in_writeable(char c, void *args)
     //              args_struct->str_col - args_struct->shift_col + args_struct->screen_region.col_start)
 }
 
+void render_file_name_segment_self_delete(void *args)
+{
+    render_file_name_segment(args);
+    delete_from_after_key_list_global(render_file_name_segment_self_delete, args);
+}
+
 void process_ctrl_in_writeable(char c, void *args)
 {
     struct write_segment_params *args_struct = args;
@@ -365,13 +436,27 @@ void process_ctrl_in_writeable(char c, void *args)
         terminal_invisible_cursor;
         args_struct->active = 0;
         args_struct->filesystem_segment_args->active = 1;
+        args_struct->instruction_args->str = string_create_from_fcharp(
+            "enter - enter directory or file  o - open directory in tree-like structure or open file\nm - go to main text segment  ctrl+e - exit");
+        render_static_segment(args_struct->instruction_args);
+        render_filesystem_segment(args_struct->filesystem_segment_args);
+        render_writeable_segment(args);
     }
     else if (c == CTRL_('N'))
     {
-        write_log(DEBUG, "ctrl n");
+        //write_log(DEBUG, "ctrl n");
         args_struct->active = 0;
         args_struct->file_name_args->active = 1;
-        render_file_name_segment(args_struct->file_name_args);
+        //render_file_name_segment(args_struct->file_name_args);
+        process_after_key_list *element = calloc(1, sizeof(process_after_key_list));
+        element->args = args_struct->file_name_args;
+        element->process_after_key = render_file_name_segment_self_delete;
+        element->free_args = NULL;
+        append_processing(process_after_key_list, general_after_key_funcs, element)
+
+        args_struct->instruction_args->str =
+            string_create_from_fcharp("enter - go to main text segment  ctrl+e - exit");
+        render_static_segment(args_struct->instruction_args);
     }
 }
 
@@ -379,7 +464,7 @@ void process_ctrl_in_writeable(char c, void *args)
 struct write_segment_params *start_write_segment(string *str,
                                                  urectangle screen_region,
                                                  void (*changer_function)(void *args, struct winsize w),
-                                                 COLOR color)
+                                                 COLOR color, COLOR current_line_color)
 {
     print_segment_plaintext_shifted(str->line, screen_region, 0);
     terminal_goto(screen_region.row_start, screen_region.col_start)
@@ -389,6 +474,7 @@ struct write_segment_params *start_write_segment(string *str,
     args->screen_region = screen_region;
     args->str = str;
     args->color = color;
+    args->current_line_color = current_line_color;
 
     process_arrow_func_list *list_element = calloc(1, sizeof(process_arrow_func_list));
     list_element->next = NULL;
@@ -578,7 +664,7 @@ void print_filesystem_segment(array_voidp filesystem_printable_arr,
                 default:
                     printf("%s", params.color_scheme.default_color.line);
             }
-            if (i == params.cursor)
+            if (i == params.cursor && params.active)
             {
                 color_inverse();
             }
@@ -718,14 +804,14 @@ struct directory_tree *dir_tree_from_anchor(file_system_anchor anchor)
 
 void render_writeable_segment_self_delete(void *args)
 {
-    write_log(DEBUG, "render self destruct start");
+    //write_log(DEBUG, "render self destruct start");
     render_writeable_segment(args);
     delete_from_after_key_list_global(render_writeable_segment_self_delete, args);
 }
 
 void activate_writeable_segment_self_delete(void *args)
 {
-    write_log(DEBUG, "activate self destruct start");
+    //write_log(DEBUG, "activate self destruct start");
     struct write_segment_params *args_struct = args;
     args_struct->active = 1;
     delete_from_after_key_list_global(activate_writeable_segment_self_delete, args);
@@ -802,13 +888,18 @@ enum recursive_state enter_cursor_recursive(file_system_anchor *anchor_to_change
         //write_log(DEBUG, "file enter got str");
         args->write_segment_args->str = result;
 
+        args->write_segment_args->str_col = 0;
+        args->write_segment_args->str_row = 0;
+        args->write_segment_args->shift_col = 0;
+        args->write_segment_args->shift_row = 0;
+
         //render_writeable_segment(args->write_segment_args); // ->
         process_after_key_list *element = calloc(1, sizeof(process_after_key_list));
         element->args = args->write_segment_args;
         element->process_after_key = render_writeable_segment_self_delete;
         element->free_args = NULL;
         append_processing(process_after_key_list, general_after_key_funcs, element)
-        write_log(DEBUG, "general after arrow %s NULL", general_after_key_funcs == NULL ? "==" : "!=");
+        //write_log(DEBUG, "general after arrow %s NULL", general_after_key_funcs == NULL ? "==" : "!=");
 
         args->file_name_segment_args->str = filename;
         args->file_name_segment_args->anchor = *anchor_to_change;
@@ -881,6 +972,10 @@ void process_char_filesystem(char c, void *args)
         element->process_after_key = render_writeable_segment_self_delete;
         element->free_args = NULL;
         append_processing(process_after_key_list, general_after_key_funcs, element)
+
+        args_struct->instruction_args->str =
+            string_create_from_fcharp("ctrl+e - exit  ctrl+f - filesystem  ctrl+x - save");
+        render_static_segment(args_struct->instruction_args);
     }
     if (c == 'b' || c == 'B')
     {
@@ -1092,6 +1187,10 @@ void process_char_file_name(char c, void *args)
         element2->process_after_key = activate_writeable_segment_self_delete;
         element2->free_args = NULL;
         append_processing(process_after_key_list, general_after_key_funcs, element2)
+
+        args_struct->instruction_args->str =
+            string_create_from_fcharp("ctrl+e - exit  ctrl+f - filesystem  ctrl+x - save");
+        render_static_segment(args_struct->instruction_args);
 
         args_struct->active = 0;
         return;

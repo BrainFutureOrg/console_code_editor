@@ -242,7 +242,10 @@ void start_plaintext_editor_UI_regular(string *str)
     string bg_file = color_create_background_rgb(12, 12, 60);
     string fg_file = color_create_foreground_rgb(100, 100, 255);
     string_add_string(&bg_file, fg_file);
-    filesystem_color_scheme filesystem_colors = {bg_dir, bg_file, bg_file};
+    string bg_default = color_create_background_rgb(12, 12, 60);
+    string fg_default = color_create_foreground_rgb(240, 240, 100);
+    string_add_string(&bg_default, fg_default);
+    filesystem_color_scheme filesystem_colors = {bg_dir, bg_file, bg_default};
     struct filesystem_segment_params *filesystem_args = start_filesystem_segment(system_anchor_init(),
                                                                                  filesystem_region,
                                                                                  changer_window_function_filesystem,

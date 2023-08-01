@@ -10,6 +10,7 @@
 #include "../loging/log.h"
 
 #define DEL 127
+#define BACK_FOLDER_NAME ".."
 
 //prints segment with given string and color in screen region, "{", "}" and "#..." are highlighted
 void print_string_segment_primitive(string str, COLOR inner_color, urectangle screen_region)
@@ -564,14 +565,29 @@ void directory_tree_to_printable(struct directory_tree dir, array_voidp *filesys
         }
         else
         {
-            //write_log(DEBUG, "directory_tree_to_printable creating filesystem_printable %d", current_struct->dir_state);
-            struct filesystem_printable *closed_printable = calloc(1, sizeof(struct filesystem_printable));
-            *closed_printable =
-                (struct filesystem_printable){string_fast_create_from_string(*current_struct->closed_dir), depth + 1,
-                                              DIRECTORY};
-            //write_log(DEBUG, "directory_tree_to_printable wait for array_voidp_push");
-            array_voidp_push(filesystem_printable_array_voidp, closed_printable);
-            //write_log(DEBUG, "directory_tree_to_printable array_voidp_push - ok");
+            if (string_charp_equals(*current_struct->closed_dir, ".."))
+            {
+                struct filesystem_printable *back_printable = calloc(1, sizeof(struct filesystem_printable));
+                *back_printable =
+                    (struct filesystem_printable){
+                        string_fast_create_from_string(string_create_from_fcharp(BACK_FOLDER_NAME)),
+                        depth + 1,
+                        DEFAULT_TYPE};
+                //write_log(DEBUG, "directory_tree_to_printable wait for array_voidp_push");
+                array_voidp_push(filesystem_printable_array_voidp, back_printable);
+            }
+            else
+            {
+                //write_log(DEBUG, "directory_tree_to_printable creating filesystem_printable %d", current_struct->dir_state);
+                struct filesystem_printable *closed_printable = calloc(1, sizeof(struct filesystem_printable));
+                *closed_printable =
+                    (struct filesystem_printable){string_fast_create_from_string(*current_struct->closed_dir),
+                                                  depth + 1,
+                                                  DIRECTORY};
+                //write_log(DEBUG, "directory_tree_to_printable wait for array_voidp_push");
+                array_voidp_push(filesystem_printable_array_voidp, closed_printable);
+                //write_log(DEBUG, "directory_tree_to_printable array_voidp_push - ok");
+            }
         }
     }
     //write_log(DEBUG, "directory_tree_to_printable end fst loop");
@@ -776,10 +792,10 @@ void process_arrow_filesystem(ARROW arrow, void *args)
 //needed only for enter_cursor_recursive
 enum recursive_state
 {
-    STATE_NONE, STATE_DIR, STATE_FILE
+    STATE_NONE, STATE_DIR, STATE_FILE, STATE_DIR_FORCE_ENTER
 };
 
-struct directory_tree *dir_tree_from_anchor(file_system_anchor anchor)
+struct directory_tree *dir_tree_from_anchor(file_system_anchor anchor, char add_back)
 {
     struct directory_tree *result = calloc(1, sizeof(struct directory_tree));
     result->dirs = array_voidp_create(free_tree_node_voidp);//
@@ -792,6 +808,15 @@ struct directory_tree *dir_tree_from_anchor(file_system_anchor anchor)
         node->closed_dir = calloc(1, sizeof(string));
         *node->closed_dir = string_copy(string_array_get_element(&content.dirs, i));
         array_voidp_push(&result->dirs, node);
+    }
+    if (add_back)
+    {
+        struct tree_node *node = calloc(1, sizeof(struct tree_node));
+        node->dir_state = CLOSED;
+        node->closed_dir = calloc(1, sizeof(string));
+        *node->closed_dir = string_create_from_fcharp("..");
+        //array_voidp_push(&result->dirs, node);
+        array_voidp_insert(&result->dirs, node, 0);
     }
     for (int i = 0; i < content.files.size; i++)
     {
@@ -827,7 +852,7 @@ enum recursive_state enter_cursor_recursive(file_system_anchor *anchor_to_change
 {
     if (*depth == cursor && !inplace)
     {
-        *dir_new = *dir_tree_from_anchor(*anchor_to_change);
+        *dir_new = *dir_tree_from_anchor(*anchor_to_change, 1);
         return STATE_DIR;
     }
     (*depth)++;
@@ -852,7 +877,7 @@ enum recursive_state enter_cursor_recursive(file_system_anchor *anchor_to_change
             if ((state = enter_cursor_recursive(anchor_to_change, dir_new, dir->open_dir, cursor, depth, inplace, args))
                 != STATE_NONE)
             {
-                write_log(DEBUG, "ended in recursive(");
+                //write_log(DEBUG, "ended in recursive(");
                 return state;
             }
             system_anchor_go_back_from_dir(anchor_to_change);
@@ -863,8 +888,14 @@ enum recursive_state enter_cursor_recursive(file_system_anchor *anchor_to_change
 
             if (*depth == cursor)
             {
+                if (string_charp_equals(*dir->closed_dir, ".."))
+                {
+                    system_anchor_go_back_from_dir(anchor_to_change);
+                    *dir_new = *dir_tree_from_anchor(*anchor_to_change, 1);
+                    return STATE_DIR_FORCE_ENTER;
+                }
                 system_anchor_go_to_dir(anchor_to_change, *dir->closed_dir);
-                *dir_new = *dir_tree_from_anchor(*anchor_to_change);//TODO free right part
+                *dir_new = *dir_tree_from_anchor(*anchor_to_change, !inplace);//TODO free right part
                 //write_log(DEBUG, "after tree from anchor dir.dirs.size = %d", dir_new->dirs.size);
                 if (inplace)
                 {
@@ -930,6 +961,7 @@ void process_char_filesystem(char c, void *args)
             enter_cursor_recursive(&new_anchor, new_dir, &args_struct->dir, args_struct->cursor, &depth, 0, args);
         switch (state)
         {
+            case STATE_DIR_FORCE_ENTER:
             case STATE_DIR:
                 //free_file_system_anchor(args_struct->current_outermost_dir);
                 args_struct->current_outermost_dir = new_anchor;
@@ -956,6 +988,12 @@ void process_char_filesystem(char c, void *args)
         {
             case STATE_DIR:
             case STATE_FILE:
+                break;
+            case STATE_DIR_FORCE_ENTER:
+                args_struct->current_outermost_dir = new_anchor;
+                args_struct->dir = *new_dir;
+                args_struct->cursor = 1;
+                args_struct->vertical_shift = 0;
                 break;
             default:
                 errno = ERANGE;
@@ -1000,14 +1038,14 @@ struct filesystem_segment_params *start_filesystem_segment(file_system_anchor an
     args->cursor = 1;
     args->print_name = 0;
     args->current_outermost_dir = anchor;
-    args->dir.dirs = array_voidp_create(free_tree_node_voidp);
+    //args->dir.dirs = array_voidp_create(free_tree_node_voidp);
     //write_log(DEBUG, "start filesystem array void created");
-    args->dir.files = string_array_create();
+    //args->dir.files = string_array_create();
     args->prefix = prefix;
-    files_dirs_from_directory content = system_anchor_get_dir_content(anchor);
+    //files_dirs_from_directory content = system_anchor_get_dir_content(anchor);
     //write_log(DEBUG, "start filesystem got content");
 
-    for (int i = 0; i < content.dirs.size; i++)
+    /*for (int i = 0; i < content.dirs.size; i++)
     {
         //write_log(DEBUG, "c1 iter %d", i);
         struct tree_node *node = calloc(1, sizeof(struct tree_node));
@@ -1021,10 +1059,11 @@ struct filesystem_segment_params *start_filesystem_segment(file_system_anchor an
         //write_log(DEBUG, "c2 iter %d", i);
         string_array_push(&args->dir.files, content.files.elements[i]);
         //write_log(DEBUG, "c2 iter %d", i);
-    }
+    }*/
     //write_log(DEBUG, "pre get name, errno %d", errno);
-    args->dir.name = system_anchor_get_directory_name(&anchor);//
+    //args->dir.name = system_anchor_get_directory_name(&anchor);//
     //write_log(DEBUG, "start filesystem args done");
+    args->dir = *dir_tree_from_anchor(anchor, 1);
 
     process_arrow_func_list *list_element = calloc(1, sizeof(process_arrow_func_list));
     list_element->next = NULL;

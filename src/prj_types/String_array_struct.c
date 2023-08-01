@@ -185,3 +185,15 @@ void string_array_print(string_array *array, char type)
             break;
     }
 }
+
+char string_array_is_charp_in(string_array *array, char *element)
+{
+    for (int i = 0; i < array->size; ++i)
+    {
+        if (string_charp_equals(array->elements[i], element))
+        {
+            return 1;
+        }
+    }
+    return 0;
+}

@@ -125,6 +125,7 @@ string string_array_pop(string_array *array);
  *                   2 - with "" and separate with ,
  *                   3 - every element in new line with their number*/
 void string_array_print(string_array *array, char type);
+char string_array_is_charp_in(string_array *array, char *element);
 void free_string_array(string_array *array);
 
 /*

@@ -119,12 +119,15 @@ int main(int argc, char **argv)
 //    read_keys();//no delete
 
     //moving_text_prototype();
+    terminal_save_screen;
+    cursor c = cursor_get_cursor_position();
     UIprototype();
+    terminal_restore_screen;
+    cursor_go_to_position(c);
 
     if (errno)
     {
         print_error();
-        printf("Fuck!\n");
     }
     write_log(INFO, "Program end");
     return 0;

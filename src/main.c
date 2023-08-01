@@ -11,7 +11,7 @@
 #include "prj_error.h"
 
 #if __has_include("git_variables.h")
-#include "git_variables.h"
+#include "../git_variables.h"
 #endif
 
 #define PROGRAM_NAME                "TextManiac"

@@ -1,5 +1,11 @@
+source_files = src/main.c src/IO/DAO.c src/prj_types/String_struct.c src/test/string_tests.c src/test/test_funcs.c src/colors.c src/prj_error.c src/prj_types/String_struct_formatting.c src/IO/terminal_io.c src/bins.c src/test/speed_tests.c src/UI/user_interface.c src/IO/segments.c src/test/test_functionality_of_new_functions.c src/prj_types/String_array_struct.c src/file_system/file_system_work.c src/prj_types/Array_type.c src/signals_redefinition.c src/loging/log.c
+flags = -Wall
+libs = -lm
+valgrind_flags = -v --tool=memcheck --leak-check=yes --track-origins=yes
+create_version_script_source = ./src/get_git_name.sh
+
 compile:
-	gcc main.c IO/DAO.c prj_types/String_struct.c test/string_tests.c test/test_funcs.c colors.c prj_error.c prj_types/String_struct_formatting.c IO/terminal_io.c bins.c test/speed_tests.c UI/user_interface.c IO/segments.c test/test_functionality_of_new_functions.c prj_types/String_array_struct.c file_system/file_system_work.c prj_types/Array_type.c signals_redefinition.c loging/log.c -lm -Wall -o main
+	gcc $(source_files) $(libs) $(flags) -o main
 
 compile_run:
 	make get_git_name
@@ -11,7 +17,7 @@ run_in_terminal:
 
 run_with_valgrind:
 	make compile
-	valgrind -v --tool=memcheck --leak-check=yes --track-origins=yes ./main
+	valgrind $(valgrind_flags) ./main
 
 get_git_name:
-	bash get_git_name.sh
+	bash $(create_version_script_source)

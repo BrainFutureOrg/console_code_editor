@@ -58,4 +58,7 @@ voidp array_voidp_pop(array_voidp *array);
  */
 void free_array_voidp(array_voidp *array);
 
+//insert element into voidp array at place specified by number
+void array_voidp_insert(array_voidp *array, voidp element, uint number);
+
 #endif //CONSOLE_CODE_EDITOR_PRJ_TYPES_ARRAY_TYPE_H

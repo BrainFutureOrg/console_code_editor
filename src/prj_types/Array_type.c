@@ -104,3 +104,24 @@ void free_array_voidp(array_voidp *array)
     free(array->elements);
     array->size = array->allocd_size = 0;
 }
+
+void array_voidp_insert(array_voidp *array, voidp element, uint number)
+{
+    if (number > array->size)
+    {
+        errno = E2BIG;
+        return;
+    }
+    if (array->size >= array->allocd_size)
+    {
+        doubling_array_voidp_len(array);
+    }
+    voidp *elements_current = array->elements + array->size;
+    while (elements_current - array->elements > number)
+    {
+        *elements_current = *(elements_current - 1);
+        elements_current--;
+    }
+    *elements_current = element;
+    array->size++;
+}

@@ -8,6 +8,9 @@
 #include "../IO/DAO.h"
 #include <dirent.h>
 
+/*
+ * Get all content without . and ..
+ */
 files_dirs_from_directory system_anchor_get_dir_content(file_system_anchor anchor)
 {
     files_dirs_from_directory result = {string_array_create(), string_array_create()};
@@ -34,7 +37,10 @@ files_dirs_from_directory system_anchor_get_dir_content(file_system_anchor ancho
                 string_array_push_charp(&result.files, file->d_name);
                 break;
             case DT_DIR:
-                string_array_push_charp(&result.dirs, file->d_name);
+                if (strcmp(file->d_name, "..") != 0 && strcmp(file->d_name, ".") != 0)
+                {
+                    string_array_push_charp(&result.dirs, file->d_name);
+                }
                 break;
             default:
                 string_array_push_charp(&result.else_files, file->d_name);

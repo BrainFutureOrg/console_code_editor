@@ -14,6 +14,9 @@
 #include "git_variables.h"
 #endif
 
+#define PROGRAM_NAME                "TextManiac"
+#define SPACE_FOR_HELP              "    "
+
 #ifndef GIT_LAST_COMMIT_HASH
 #define GIT_LAST_COMMIT_HASH "hasn't_version"
 #endif
@@ -45,13 +48,24 @@ enum STOP_RESUME
     RESUME_PROGRAM
 };
 
-void print_help()
+void print_help(char *prog_name)
 {
-    printf("Here will be some help info\n");
+    printf("NAME\n" SPACE_FOR_HELP PROGRAM_NAME " - the text editor from BFO\n");
+    printf("SYNOPSIS\n" SPACE_FOR_HELP "%s [OPTION]\n", prog_name);
+    printf("OPTIONS\n");
+    printf(SPACE_FOR_HELP "Parameter       Full version  Opinion\n");
+    printf(SPACE_FOR_HELP "-h              --help        Show help info\n");
+    printf(SPACE_FOR_HELP "-v              --version     Show version info\n");
+    printf(SPACE_FOR_HELP "-o <file_name>  --open        Run program with already opened file that name is <file_name>\n");
+    printf(SPACE_FOR_HELP "                --test        Run program tests\n");
 }
+
 void print_version()
 {
-    printf("TextManiac - Version alpha 0.0.%s\n", GIT_LAST_COMMIT_HASH);
+    printf(PROGRAM_NAME " - Version alpha 0.0.%s\n\n", GIT_LAST_COMMIT_HASH);
+    printf("It is free software: you are free to modify and distribute it.\n");
+    printf("NO WARRANTIES are made to you, other than those provided by law.\n\n");
+    printf("Authors of program are: Kosenko Olexander, Shkarupylo Maksym\n");
 }
 
 enum STOP_RESUME argv_checker(int argc, char **argv)
@@ -61,7 +75,7 @@ enum STOP_RESUME argv_checker(int argc, char **argv)
         write_log(INFO, "argc = %d", argc);
         if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0)
         {
-            print_help();
+            print_help(argv[0]);
             return STOP_PROGRAM;
         }
         if (strcmp(argv[i], "--version") == 0 || strcmp(argv[i], "-v") == 0)

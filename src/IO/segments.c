@@ -1012,7 +1012,8 @@ void process_char_filesystem(char c, void *args)
         append_processing(process_after_key_list, general_after_key_funcs, element)
 
         args_struct->instruction_args->str =
-            string_create_from_fcharp("ctrl+e - exit  ctrl+f - filesystem  ctrl+x - save");
+            string_create_from_fcharp(
+                "ctrl+e - exit  ctrl+f - filesystem  ctrl+x - save  ctrl+n - filename  ctrl+l - leave file");
         render_static_segment(args_struct->instruction_args);
     }
     if (c == 'b' || c == 'B')
@@ -1228,7 +1229,8 @@ void process_char_file_name(char c, void *args)
         append_processing(process_after_key_list, general_after_key_funcs, element2)
 
         args_struct->instruction_args->str =
-            string_create_from_fcharp("ctrl+e - exit  ctrl+f - filesystem  ctrl+x - save");
+            string_create_from_fcharp(
+                "ctrl+e - exit  ctrl+f - filesystem  ctrl+x - save  ctrl+n - filename  ctrl+l - leave file");
         render_static_segment(args_struct->instruction_args);
 
         args_struct->active = 0;
@@ -1273,7 +1275,7 @@ struct file_name_params *start_file_name_segment(file_system_anchor anchor, stri
                                                  urectangle screen_region,
                                                  void (*changer_function)(void *element, struct winsize w))
 {
-    write_log(DEBUG, "start file name started");
+    //write_log(DEBUG, "start file name started");
     struct file_name_params *args = calloc(1, sizeof(struct file_name_params));
     args->anchor = anchor;
     args->str = str;
@@ -1296,8 +1298,8 @@ struct file_name_params *start_file_name_segment(file_system_anchor anchor, stri
     append_processing(process_char_func_list, general_char_process_funcs, list_element_char)
 
     registration_for_window_size_update(args, changer_function);
-    write_log(DEBUG, "start file name pre-render");
+    //write_log(DEBUG, "start file name pre-render");
     render_file_name_segment(args);
-    write_log(DEBUG, "start file name ended");
+    //write_log(DEBUG, "start file name ended");
     return args;
 }

@@ -189,6 +189,22 @@ void ctrl_save(char c, void *args)
                          args_struct->filename_args->str.line,
                          *args_struct->writeable_args->str);
     }
+    else if (c == CTRL_('L'))
+    {
+        free_string(*args_struct->writeable_args->str);
+        *args_struct->writeable_args->str = string_create_from_fcharp("");
+        args_struct->writeable_args->shift_col = 0;
+        args_struct->writeable_args->shift_row = 0;
+        args_struct->writeable_args->str_row = 0;
+        args_struct->writeable_args->str_col = 0;
+        args_struct->filename_args->cursor = 0;
+        args_struct->filename_args->shift = 0;
+        free_string(args_struct->filename_args->str);
+        args_struct->filename_args->str = string_create_from_fcharp("");
+        render_file_name_segment(args_struct->filename_args);
+        render_writeable_segment(args_struct->writeable_args);
+        //args_struct.
+    }
 }
 void start_plaintext_editor_UI_regular(string *str)
 {
@@ -221,7 +237,8 @@ void start_plaintext_editor_UI_regular(string *str)
 
     urectangle instructions_region = {20, 22, 5, 70};
     COLOR instructions_color = color_create_background_rgb(20, 20, 82);//TODO free
-    string instructions_str = string_create_from_fcharp("ctrl+e - exit   ctrl+f - filesystem  ctrl+x - save");
+    string instructions_str = string_create_from_fcharp(
+        "ctrl+e - exit  ctrl+f - filesystem  ctrl+x - save  ctrl+n - filename  ctrl+l - leave file");
     struct static_params *instruction_args = start_static_segment(instructions_str,
                                                                   instructions_color,
                                                                   instructions_region,

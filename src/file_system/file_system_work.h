@@ -33,6 +33,10 @@ string path_join(string path, char *filename);
 string anchor_read_file(file_system_anchor anchor, char *filename);
 void anchor_save_file(file_system_anchor anchor, char *filename, string contains);
 
+void anchor_create_dir(file_system_anchor anchor, char *dir_name);
+char anchor_is_file_exist(file_system_anchor anchor, char *file_name);
+char is_file_name_valid(char *file_name);
+
 file_system_anchor anchor_copy(file_system_anchor anchor);
 
 #endif //CONSOLE_CODE_EDITOR_FILE_SYSTEM_FILE_SYSTEM_WORK_H

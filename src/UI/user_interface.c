@@ -229,6 +229,7 @@ void ctrl_save(char c, void *args)
         render_writeable_segment(args_struct->writeable_args);
         //args_struct.
     }
+    //else if()
 }
 void start_plaintext_editor_UI_regular(string *str)
 {

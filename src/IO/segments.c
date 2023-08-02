@@ -444,7 +444,7 @@ void process_ctrl_in_writeable(char c, void *args)
         args_struct->active = 0;
         args_struct->filesystem_segment_args->active = 1;
         args_struct->instruction_args->str = string_create_from_fcharp(
-            "enter - enter directory or file  o - open directory in tree-like structure or open file\nm - go to main text segment  ctrl+e - exit");
+            "enter - enter directory or file  o - open directory in tree-like structure or open file\nm - go to main text segment  ctrl+e - exit\np - get path to folder or file without reading it's contents");
         render_static_segment(args_struct->instruction_args);
         render_filesystem_segment(args_struct->filesystem_segment_args);
         render_writeable_segment(args);
@@ -462,7 +462,8 @@ void process_ctrl_in_writeable(char c, void *args)
         append_processing(process_after_key_list, general_after_key_funcs, element)
 
         args_struct->instruction_args->str =
-            string_create_from_fcharp("enter - go to main text segment  ctrl+e - exit");
+            string_create_from_fcharp(
+                "enter - go to main text segment  ctrl+e - exit\nctrl+f - use name as folder name instead of file name and create folder with it");
         render_static_segment(args_struct->instruction_args);
     }
 }
@@ -953,6 +954,87 @@ enum recursive_state enter_cursor_recursive(file_system_anchor *anchor_to_change
     return STATE_NONE;
 }
 
+enum recursive_state enter_cursor_recursive_path(file_system_anchor *anchor_to_change,
+                                                 struct directory_tree *dir_old,
+                                                 uint cursor,
+                                                 uint *depth,
+                                                 struct filesystem_segment_params *args)
+{
+    if (*depth == cursor)
+    {
+        return STATE_DIR;
+    }
+    (*depth)++;
+
+    for (int i = 0; i < dir_old->dirs.size; i++)
+    {
+        struct tree_node *dir = array_voidp_get_element(&dir_old->dirs, i);
+        if (dir->dir_state == OPEN)
+        {
+            //write_log(DEBUG, "open dir opened in enter_cursor_recursive");
+            enum recursive_state state;
+            system_anchor_go_to_dir(anchor_to_change, dir->open_dir->name);
+
+            if ((state = enter_cursor_recursive_path(anchor_to_change, dir->open_dir, cursor, depth, args))
+                != STATE_NONE)
+            {
+                //write_log(DEBUG, "ended in recursive(");
+                return state;
+            }
+            system_anchor_go_back_from_dir(anchor_to_change);
+        }
+        else
+        {
+            if (*depth == cursor)
+            {
+                if (string_charp_equals(*dir->closed_dir, ".."))
+                {
+                    system_anchor_go_back_from_dir(anchor_to_change);
+                    return STATE_DIR;
+                }
+                system_anchor_go_to_dir(anchor_to_change, *dir->closed_dir);
+                return STATE_DIR;
+            }
+            (*depth)++;
+        }
+    }
+    if (dir_old->files.size > cursor - *depth)
+    {
+        //write_log(DEBUG, "trying open file");
+        string filename = string_array_get_element(&dir_old->files, cursor - *depth);
+
+        //free_string(*args->write_segment_args->str);
+        //string *result = calloc(1, sizeof(string));
+        //*result = string_create_from_fcharp("");
+        //args->write_segment_args->str = result;
+
+        //args->write_segment_args->str_col = 0;
+        //args->write_segment_args->str_row = 0;
+        //args->write_segment_args->shift_col = 0;
+        //args->write_segment_args->shift_row = 0;
+
+        /*process_after_key_list *element = calloc(1, sizeof(process_after_key_list));
+        element->args = args->write_segment_args;
+        element->process_after_key = render_writeable_segment_self_delete;
+        element->free_args = NULL;
+        append_processing(process_after_key_list, general_after_key_funcs, element)*/
+
+        args->file_name_segment_args->str = filename;
+        args->file_name_segment_args->anchor = *anchor_to_change;
+        args->file_name_segment_args->opened_from_filesystem = 0;
+        args->file_name_segment_args->cursor = 0;
+        args->file_name_segment_args->shift = 0;
+        render_file_name_segment(args->file_name_segment_args);
+
+        return STATE_FILE;
+    }
+    else
+    {
+        *depth += dir_old->files.size;
+    }
+    return STATE_NONE;
+}
+
 void process_char_filesystem(char c, void *args)
 {
     struct filesystem_segment_params *args_struct = args;
@@ -1026,6 +1108,31 @@ void process_char_filesystem(char c, void *args)
     if (c == 'b' || c == 'B')
     {
 
+    }
+    if (c == 'p' || c == 'P')
+    {
+        file_system_anchor new_anchor = anchor_copy(args_struct->current_outermost_dir);
+        //struct directory_tree *new_dir = calloc(1, sizeof(struct directory_tree));//TODO free
+        uint depth = 0;
+        enum recursive_state
+            state =
+            enter_cursor_recursive_path(&new_anchor, &args_struct->dir, args_struct->cursor, &depth, args);
+        switch (state)
+        {
+            case STATE_DIR:
+                args_struct->file_name_segment_args->anchor = new_anchor;
+                free_string(args_struct->file_name_segment_args->str);
+                args_struct->file_name_segment_args->str = string_create_from_fcharp("");
+                args_struct->file_name_segment_args->cursor = 0;
+                args_struct->file_name_segment_args->shift = 0;
+                args_struct->file_name_segment_args->opened_from_filesystem = 0;
+                render_file_name_segment(args_struct->file_name_segment_args);
+                break;
+            case STATE_FILE:
+                break;
+            default:
+                errno = ERANGE;
+        }
     }
 
     render_filesystem_segment(args);
@@ -1321,6 +1428,33 @@ void process_char_file_name(char c, void *args)
     render_file_name_segment(args);
 }
 
+void process_ctrl_file_name(char c, void *args)
+{
+    struct file_name_params *args_struct = args;
+    if (!args_struct->active)
+    {
+        return;
+    }
+    if (c == CTRL_('F'))
+    {
+        if (anchor_is_file_exist(args_struct->anchor, args_struct->str.line))
+        {
+            //TODO user warning
+            return;
+        }
+        if (!is_file_name_valid(args_struct->str.line))
+        {
+            //TODO user warning
+            return;
+        }
+        anchor_create_dir(args_struct->anchor, args_struct->str.line);
+        system_anchor_go_to_dir(&args_struct->anchor, args_struct->str);
+        free_string(args_struct->str);
+        args_struct->str = string_create_from_fcharp("");
+        render_file_name_segment(args);
+    }
+}
+
 struct file_name_params *start_file_name_segment(file_system_anchor anchor, string str,
                                                  COLOR color_anchor,
                                                  COLOR color_name,
@@ -1351,6 +1485,12 @@ struct file_name_params *start_file_name_segment(file_system_anchor anchor, stri
     list_element_char->next = NULL;
     list_element_char->process_char = process_char_file_name;
     append_processing(process_char_func_list, general_char_process_funcs, list_element_char)
+
+    process_ctrl_func_list *list_element_ctrl = calloc(1, sizeof(process_ctrl_func_list));
+    list_element_ctrl->args = args;
+    list_element_ctrl->process_ctrl_char = process_ctrl_file_name;
+    list_element_ctrl->next = NULL;
+    append_processing(process_ctrl_func_list, general_ctrl_process_funcs, list_element_ctrl);
 
     registration_for_window_size_update(args, changer_function);
     //write_log(DEBUG, "start file name pre-render");

@@ -18,7 +18,7 @@ run_in_terminal:
 
 run_with_valgrind:
 	make compile
-	valgrind $(valgrind_flags) ./main
+	valgrind $(valgrind_flags) ./TextManiac
 
 get_git_name:
 	bash $(create_version_script_source)

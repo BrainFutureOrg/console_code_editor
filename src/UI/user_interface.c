@@ -184,7 +184,29 @@ void ctrl_save(char c, void *args)
         return;
     if (c == CTRL_('X'))
     {
-        //write_log(DEBUG, "ctrl+x");
+        write_log(DEBUG, "ctrl+x, str=\"%s\"", args_struct->filename_args->str.line);
+        if (!is_file_name_valid(args_struct->filename_args->str.line))
+        {
+            write_log(DEBUG, "file name not valid");
+            args_struct->filename_args->illegal_name = 1;
+            render_file_name_segment(args_struct->filename_args);
+            return;
+        }
+        if (anchor_is_file_exist(args_struct->filename_args->anchor, args_struct->filename_args->str.line))
+        {
+            if (args_struct->filename_args->save_double_check || args_struct->filename_args->opened_from_filesystem)
+            {
+                args_struct->filename_args->save_double_check = 0;
+                args_struct->filename_args->opened_from_filesystem = 1;
+                render_file_name_segment(args_struct->filename_args);
+            }
+            else
+            {
+                args_struct->filename_args->save_double_check = 1;
+                render_file_name_segment(args_struct->filename_args);
+                return;
+            }
+        }
         anchor_save_file(args_struct->filename_args->anchor,
                          args_struct->filename_args->str.line,
                          *args_struct->writeable_args->str);
@@ -199,6 +221,8 @@ void ctrl_save(char c, void *args)
         args_struct->writeable_args->str_col = 0;
         args_struct->filename_args->cursor = 0;
         args_struct->filename_args->shift = 0;
+        args_struct->filename_args->opened_from_filesystem = 0;
+        args_struct->filename_args->save_double_check = 0;
         free_string(args_struct->filename_args->str);
         args_struct->filename_args->str = string_create_from_fcharp("");
         render_file_name_segment(args_struct->filename_args);

@@ -103,7 +103,7 @@ enum STOP_RESUME argv_checker(int argc, char **argv)
 
 int main(int argc, char **argv)
 {
-    init_logger(INFO, "log.txt");
+    init_logger(DEBUG, "log.txt");//TODO to info
     write_log(INFO, "Program start");
     redefine_signals();
     print_logo();

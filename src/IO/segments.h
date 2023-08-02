@@ -109,6 +109,9 @@ struct file_name_params
     char active;
     struct write_segment_params *write_args;
     struct static_params *instruction_args;
+    char save_double_check;
+    char opened_from_filesystem;
+    char illegal_name;
 };
 void render_file_name_segment(void *args);
 struct file_name_params *start_file_name_segment(file_system_anchor anchor, string str,

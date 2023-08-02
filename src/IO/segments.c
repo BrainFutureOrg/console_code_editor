@@ -8,10 +8,16 @@
 #include "../prj_types/Array_type.h"
 #include "../signals_redefinition.h"
 #include "../loging/log.h"
+#include <stdio.h>
 
 #define DEL 127
 #define BACK_FOLDER_NAME ".."
+#define SAVE_FILE_EXISTS_WARNING "file with this path exists, if you are sure you want to rewrite it press ctrl+x again"
 
+void produce_illegal_name_warning(char *write_to)
+{
+    sprintf(write_to, "file name should not contain %c", dir_slash);
+}
 //prints segment with given string and color in screen region, "{", "}" and "#..." are highlighted
 void print_string_segment_primitive(string str, COLOR inner_color, urectangle screen_region)
 {
@@ -934,6 +940,7 @@ enum recursive_state enter_cursor_recursive(file_system_anchor *anchor_to_change
 
         args->file_name_segment_args->str = filename;
         args->file_name_segment_args->anchor = *anchor_to_change;
+        args->file_name_segment_args->opened_from_filesystem = 1;
         render_file_name_segment(args->file_name_segment_args);
         //write_log(DEBUG, "entered file, %d < %d", dir_old->files.size, cursor - *depth + 1);
         return STATE_FILE;
@@ -1114,6 +1121,7 @@ struct static_params *start_static_segment(string str,
 
 void render_file_name_segment(void *args)
 {
+    write_log(DEBUG, "render file name");
     struct file_name_params *args_struct = args;
     uint width = args_struct->screen_region.col_end - args_struct->screen_region.col_start;
     if (args_struct->screen_region.row_start != args_struct->screen_region.row_end)
@@ -1152,8 +1160,49 @@ void render_file_name_segment(void *args)
         }
 
         //free_string(full_path);
+        if (args_struct->save_double_check
+            && args_struct->screen_region.row_end - args_struct->screen_region.row_start > 1)
+        {
+            write_log(DEBUG, "double-check started");
+            terminal_goto(args_struct->screen_region.row_start + 1, args_struct->screen_region.col_start)
+            char *warning_line = SAVE_FILE_EXISTS_WARNING;
+            for (j = width; j--;)
+            {
+                if (*warning_line != '\0')
+                {
+                    putchar(*warning_line++);
+                }
+                else
+                {
+                    putchar(' ');
+                }
+            }
+        }
+        if (args_struct->illegal_name
+            && args_struct->screen_region.row_end - args_struct->screen_region.row_start > 1)
+        {
+            write_log(DEBUG, "illegal name warning started");
 
-        for (uint i = 1; i < args_struct->screen_region.row_end - args_struct->screen_region.row_start; i++)
+            terminal_goto(args_struct->screen_region.row_start + 1, args_struct->screen_region.col_start)
+            char warning_line_empty[35];
+            produce_illegal_name_warning(warning_line_empty);
+            char *warning_line = warning_line_empty;
+            write_log(DEBUG, "warning line =\"%s\"", warning_line);
+            for (j = width; j--;)
+            {
+                if (*warning_line != '\0')
+                {
+                    write_log(DEBUG, "%c", *warning_line);
+                    putchar(*warning_line++);
+                }
+                else
+                {
+                    putchar(' ');
+                }
+            }
+        }
+        for (uint i = 1 + args_struct->save_double_check + args_struct->illegal_name;
+             i < args_struct->screen_region.row_end - args_struct->screen_region.row_start; i++)
         {
             terminal_goto(args_struct->screen_region.row_start + i, args_struct->screen_region.col_start)
             for (j = width; j--;)
@@ -1236,6 +1285,9 @@ void process_char_file_name(char c, void *args)
         args_struct->active = 0;
         return;
     }
+    args_struct->illegal_name = 0;
+    args_struct->opened_from_filesystem = 0;
+    args_struct->save_double_check = 0;
     string full_path = system_anchor_get_full_path(args_struct->anchor);
     uint pre_len = strlen(full_path.line) + 1;
     //free_string(full_path);
@@ -1284,6 +1336,9 @@ struct file_name_params *start_file_name_segment(file_system_anchor anchor, stri
     args->screen_region = screen_region;
     args->cursor = 0;
     args->shift = 0;
+    args->save_double_check = 0;
+    args->opened_from_filesystem = 0;
+    args->illegal_name = 0;
 
     process_arrow_func_list *list_element = calloc(1, sizeof(process_arrow_func_list));
     list_element->next = NULL;

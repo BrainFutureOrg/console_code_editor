@@ -5,6 +5,9 @@
 #ifndef CONSOLE_CODE_EDITOR_FILE_SYSTEM_FILE_SYSTEM_WORK_H
 #define CONSOLE_CODE_EDITOR_FILE_SYSTEM_FILE_SYSTEM_WORK_H
 #include "../prj_types/String_struct.h"
+
+#define dir_slash '/'
+
 typedef struct
 {
     string path;

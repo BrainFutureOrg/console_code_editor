@@ -8,8 +8,6 @@
 #include "../IO/DAO.h"
 #include <dirent.h>
 
-#define dir_slash '/'
-
 /*
  * Get all content without . and ..
  */
@@ -181,14 +179,14 @@ char anchor_is_file_exist(file_system_anchor anchor, char *file_name)
 
 char is_file_symbol_valid(char c)
 {
-    return c == dir_slash;
+    return c != dir_slash;
 }
 
 char is_file_name_valid(char *file_name)
 {
     while (*file_name != '\0')
     {
-        if (is_file_symbol_valid(*file_name++))
+        if (!is_file_symbol_valid(*file_name++))
         {
             return 0;
         }

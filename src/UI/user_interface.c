@@ -231,7 +231,7 @@ void ctrl_save(char c, void *args)
     }
     //else if()
 }
-void start_plaintext_editor_UI_regular(string *str)
+void start_plaintext_editor_UI_regular(string *str, file_system_anchor anchor, string filename)
 {
     terminal_erase_screen;
 
@@ -242,13 +242,7 @@ void start_plaintext_editor_UI_regular(string *str)
     string fg_label_name = color_create_foreground_rgb(255, 255, 255);
     string_add_string(&bg_label_name, fg_label_name);
     urectangle label_region = {2, 3, 20, 70};//TODO:free
-    string label_str = string_create_from_fcharp("");
-    //struct static_params *file_name_args = start_static_segment(label_str,
-    //                                                            label_color,
-    //                                                            label_region,
-    //                                                            changer_window_function_file_name);
-    file_system_anchor anchor = system_anchor_init();//TODO:free
-    struct file_name_params *file_name_args = start_file_name_segment(anchor, label_str,
+    struct file_name_params *file_name_args = start_file_name_segment(anchor, filename,
                                                                       bg_label_anchor,
                                                                       bg_label_name,
                                                                       label_region,

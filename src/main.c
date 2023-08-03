@@ -35,11 +35,23 @@ void tests();
 //    color_to_default();
 //}
 
-void UIprototype()
+void UIprototype(file_system_anchor anchor, string filename)
 {
-    string text = string_create_from_fcharp("");
-    start_plaintext_editor_UI_regular(&text);
+    terminal_save_screen;
+    cursor c = cursor_get_cursor_position();
+    string text;
+    if (strcmp(filename.line, "") == 0)
+    {
+        text = string_create_from_fcharp("");
+    }
+    else
+    {
+        text = anchor_read_file(anchor, filename.line);
+    }
+    start_plaintext_editor_UI_regular(&text, anchor, filename);
     free_string(text);
+    terminal_restore_screen;
+    cursor_go_to_position(c);
 }
 
 enum STOP_RESUME
@@ -68,6 +80,15 @@ void print_version()
     printf("Authors of program are: Kosenko Olexander, Shkarupylo Maksym\n");
 }
 
+char *initial_file;
+
+char split_on_dir_slash(char *c)
+{
+    if (*c == dir_slash)
+        return 1;
+    return 0;
+}
+
 enum STOP_RESUME argv_checker(int argc, char **argv)
 {
     for (int i = 1; i < argc; ++i)
@@ -86,8 +107,57 @@ enum STOP_RESUME argv_checker(int argc, char **argv)
         if (strcmp(argv[i], "--open") == 0 || strcmp(argv[i], "-o") == 0)
         {
             write_log(DEBUG, "open\n");
-            //TODO: realization
-            return RESUME_PROGRAM;
+            if (argc <= ++i)
+            {
+                printf("To open file, specify it's name after -o ar -open");
+                return STOP_PROGRAM;
+            }
+            else
+            {
+                file_system_anchor anchor;
+                if (*argv[i] == dir_slash)
+                {
+                    anchor.path = string_create_from_fcharp("");
+                }
+                else
+                {
+                    anchor = system_anchor_init();
+                }
+                string_array names = string_split(argv[i] + 1 + (*argv[i] != dir_slash), split_on_dir_slash);
+                for (int j = 0; j < names.size - 1; j++)
+                {
+                    if (!anchor_is_file_exist(anchor,
+                                              string_array_get_element(&names, j)
+                                                  .line))//TODO: check existence of 1st folder in path
+                    {
+                        write_log(DEBUG,
+                                  "nonexistent folder %s / %s",
+                                  anchor.path.line,
+                                  string_array_get_element(&names, j).line);
+                        printf("You can not open nonexistent file/directory");
+                        return STOP_PROGRAM;
+                    }
+                    system_anchor_go_to_dir(&anchor, string_array_get_element(&names, j));
+
+                }
+                if (!anchor_is_file_exist(anchor, string_array_get_element(&names, names.size - 1).line))
+                {
+                    write_log(DEBUG,
+                              "nonexistent file %s / %s",
+                              anchor.path.line,
+                              string_array_get_element(&names, names.size - 1).line);
+                    printf("You can not open nonexistent file/directory");
+                    return STOP_PROGRAM;
+                }
+                string filename = string_array_pop(&names);
+
+                write_log(DEBUG, "open from file, anchor=\"%s\", name=\"%s\"", anchor.path.line, filename.line);
+                UIprototype(anchor, filename);
+
+                free_string(filename);
+                free_file_system_anchor(anchor);
+            }
+            return STOP_PROGRAM;
         }
 
         if (strcmp(argv[i], "--test") == 0)
@@ -112,18 +182,12 @@ int main(int argc, char **argv)
     {
         return 0;
     }
-    //test_cursor_functions();// test that prints strange things
-//    test_console_games_functions(2);
-//    test_urectangle_region_functionality();
-//    test_interesting_picture();
-//    read_keys();//no delete
 
-    //moving_text_prototype();
-    terminal_save_screen;
-    cursor c = cursor_get_cursor_position();
-    UIprototype();
-    terminal_restore_screen;
-    cursor_go_to_position(c);
+    string filename = string_create_from_fcharp("");
+    file_system_anchor anchor = system_anchor_init();
+    UIprototype(anchor, filename);
+    free_string(filename);
+    free_file_system_anchor(anchor);
 
     if (errno)
     {
